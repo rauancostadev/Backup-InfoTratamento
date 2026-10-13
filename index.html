@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Marcação • Início</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body data-page="index">
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">🏥 Sistema Interno</span>
+      <h1><span id="greet">Olá</span>! 👋</h1>
+      <p>Agendas, protocolos, contatos e respostas prontas do tratamento, tudo em um só lugar.</p>
+    </div>
+    <div class="today-box">
+      <small>Hoje</small>
+      <strong id="todayLabel">—</strong>
+      <span id="todayClock">—</span>
+    </div>
+  </div>
+</section>
+
+<main id="conteudo">
+  <section class="shortcuts" aria-label="Atalhos">
+
+    <a class="shortcut" href="oncologia.html" style="--c:#c2185b;--bg-c:#fce4ec">
+      <div class="s-ico">♋</div>
+      <h2>Oncologia Clínica</h2>
+      <p>Divisão de tumores, médicos por área de atuação e rede de especialistas.</p>
+      <span class="go">Abrir <span>→</span></span>
+    </a>
+
+    <a class="shortcut" href="radioterapia.html" style="--c:var(--laranja);--bg-c:var(--conv-bg)">
+      <div class="s-ico">📅</div>
+      <h2>Agenda Radioterapia</h2>
+      <p>Quem atende em cada dia e turno, com as vagas de novos e controles.</p>
+      <span class="go">Abrir <span>→</span></span>
+    </a>
+
+    <a class="shortcut" href="quimioterapia.html" style="--c:var(--roxo);--bg-c:var(--res-bg)">
+      <div class="s-ico">💉</div>
+      <h2>Quimioterapia</h2>
+      <p>Medicações, intervalos de retorno e orientações para o agendamento.</p>
+      <span class="go">Abrir <span>→</span></span>
+    </a>
+
+    <a class="shortcut" href="ultrassonografia.html" style="--c:var(--azul);--bg-c:var(--sus-bg)">
+      <div class="s-ico">📺</div>
+      <h2>Ultrassonografia</h2>
+      <p>Procedimentos e os profissionais habilitados para cada exame.</p>
+      <span class="go">Abrir <span>→</span></span>
+    </a>
+
+    <a class="shortcut" href="anotacoes.html" style="--c:var(--verde);--bg-c:var(--ok-bg)">
+      <div class="s-ico">📋</div>
+      <h2>Respostas Rápidas</h2>
+      <p>Mensagens prontas para copiar e enviar ao paciente com um clique.</p>
+      <span class="go">Abrir <span>→</span></span>
+    </a>
+
+    <a class="shortcut" href="telefonia.html" style="--c:var(--azul-2);--bg-c:#e0f2f1">
+      <div class="s-ico">☎️</div>
+      <h2>Telefonia</h2>
+      <p>Contatos dos setores e unidades.</p>
+      <span class="go">Abrir <span>→</span></span>
+    </a>
+
+  </section>
+
+  <p class="tip">Dica: em qualquer página, aperte <kbd>/</kbd> para ir direto à busca.</p>
+  <div class="page-end"></div>
+</main>
+
+<script src="shell.js"></script>
+<script>
+(function () {
+  var diasMeses = { weekday: 'long', day: '2-digit', month: 'long' };
+  function tick() {
+    var now = new Date();
+    document.getElementById('greet').textContent = UI.greeting();
+    var d = now.toLocaleDateString('pt-BR', diasMeses);
+    document.getElementById('todayLabel').textContent = d.charAt(0).toUpperCase() + d.slice(1);
+    document.getElementById('todayClock').textContent = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+  tick();
+  setInterval(tick, 30000);
+})();
+</script>
+</body>
+</html>

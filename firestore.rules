@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Cada pessoa só lê e escreve as PRÓPRIAS anotações.
+    match /users/{uid}/notas/{nota} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['titulo', 'texto', 'atualizado'])
+        && request.resource.data.titulo is string && request.resource.data.titulo.size() <= 80
+        && request.resource.data.texto is string && request.resource.data.texto.size() <= 5000;
+    }
+  }
+}

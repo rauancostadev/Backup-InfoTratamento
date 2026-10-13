@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oncologia Clínica • Central de Marcação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js" defer></script>
+</head>
+<body data-page="oncologia">
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">♋ Oncologia Clínica</span>
+      <h1>Divisão de Tumores</h1>
+      <p>Veja quais médicos atuam em cada área e como a equipe de especialistas se conecta.</p>
+    </div>
+  </div>
+</section>
+
+<main class="wrap" id="conteudo">
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-ico">🎗️</div><div><b id="kAreas">0</b><span>Áreas de atuação</span></div></div>
+    <div class="kpi"><div class="kpi-ico">👨‍⚕️</div><div><b id="kMed">0</b><span>Médicos</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🔗</div><div><b id="kLinks">0</b><span>Vínculos médico × área</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🏆</div><div><b class="txt" id="kTop">—</b><span>Maior cobertura</span></div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search" id="searchBox"><input type="search" id="busca" placeholder="Buscar médico..." autocomplete="off" aria-label="Buscar médico"></div>
+    <div class="spacer"></div>
+    <div class="seg" id="seg">
+      <button class="active" data-v="tumor">Por tumor</button>
+      <button data-v="docs">Por médico</button>
+      <button data-v="net">Rede</button>
+    </div>
+  </div>
+
+  <div class="subbar" id="subbar">
+    <span class="chips-label">Área</span>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <p class="result-count" id="count"></p>
+
+  <div id="viewTumor" class="tumor-grid"></div>
+  <div id="viewDocs" class="grid" style="display:none"></div>
+  <div id="viewNet" class="net-wrap" style="display:none">
+    <div class="net-info" id="netInfo"></div>
+    <div id="network"></div>
+  </div>
+
+</main>
+
+<script src="shell.js"></script>
+<script>
+/* ============ DADOS ============
+   Área de atuação  ->  médicos que atendem nela.
+   Para incluir um médico, acrescente o nome na lista da área.      */
+const RAW = {
+"Mama":["Wendel Ferreira","Monalisa Ceciliana","Luciana Aquino","Carolina de Lima","Joilda Batista","Cristina Rocha","Ana Rafaela","Carolina Filgueira","Renanna Lyra","Laura Porto","Ayala Kaline","Marcele Aurea","Eliane Melo"],
+"Primário Oculto":["Eliane Melo","Luciana Aquino","Rodrigo Jeronimo","Érika Ximenes"],
+"TGI/Gastrointestinal":["Ana Rafaela","Ayala Kaline","Isafran Emanuele","Pedro Victor","Laura Porto","Pierre Gois","Moises"],
+"Urológico":["Silvio Sales","Andrea Juliana","Rodrigo Jeronimo","Érika Ximenes","Carolina Filgueira","Isafran Emanuele","Carolina de Lima","Monalisa Ceciliana"],
+"Melanoma/Pele":["Cristina Rocha","Alison Wagner","Pedro Victor","Eliane Melo","Ana Rafaela","Moises"],
+"Colorretal":["Laura Porto","Pierre Gois","Silvio Sales","Marcele Aurea","Wendel Ferreira","Isafran Emanuele","Ayala Kaline","Sulene Cunha"],
+"Cérebro":["Alison Wagner","Eliane Melo","Moises","Renanna Lyra"],
+"Sarcoma":["Alison Wagner","Pierre Gois","Renanna Lyra"],
+"Pulmão/Timo":["Wendel Ferreira","Sulene Cunha","Pedro Victor","Pierre Gois","Moises"],
+"Cabeça e Pescoço":["Silvio Sales","Andrea Juliana","Carolina de Lima","Érika Ximenes"],
+"Ginecológico":["Monalisa Ceciliana","Sulene Cunha","Luciana Aquino","Andrea Juliana","Carolina de Lima","Ayala Kaline","Carolina Filgueira","Marcele Aurea","Renanna Lyra"]
+};
+
+const PALETTE = ['#c2185b','#6a1b9a','#1a4f88','#00838f','#2e7d32','#CC5500','#5d4037','#455a64','#ad1457','#0277bd','#558b2f'];
+const FACE = 'Plus Jakarta Sans, Arial, sans-serif';
+
+const TUMORS = Object.keys(RAW);
+const DATA = {};                                   // lista ordenada e sem repetições
+TUMORS.forEach(t => { DATA[t] = [...new Set(RAW[t])].sort((a,b)=>a.localeCompare(b,'pt-BR')); });
+const DOCS = {};                                   // médico -> áreas
+TUMORS.forEach(t => DATA[t].forEach(d => (DOCS[d] = DOCS[d] || []).push(t)));
+const DOC_NAMES = Object.keys(DOCS).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+
+const $ = id => document.getElementById(id);
+const color = t => PALETTE[TUMORS.indexOf(t) % PALETTE.length];
+const cvars = t => `--c:${color(t)};--bg-c:${color(t)}1f`;
+const rgba = (hex,a) => { const n=parseInt(hex.slice(1),16); return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`; };
+const plural = (n,s,p) => n + ' ' + (n===1 ? s : p);
+
+const state = { view:'tumor', q:'', tumor:'all' };
+
+/* ---------- indicadores (não mudam com os filtros) ---------- */
+(function(){
+  $('kAreas').textContent = TUMORS.length;
+  $('kMed').textContent = DOC_NAMES.length;
+  $('kLinks').textContent = TUMORS.reduce((a,t)=>a+DATA[t].length,0);
+  const top = TUMORS.reduce((a,t)=>DATA[t].length>DATA[a].length?t:a, TUMORS[0]);
+  $('kTop').textContent = top + ' · ' + DATA[top].length;
+})();
+
+/* ---------- filtros ---------- */
+function renderChips(){
+  const all = `<button class="chip ${state.tumor==='all'?'active':''}" data-t="all">Todas <em>${TUMORS.length}</em></button>`;
+  $('chips').innerHTML = all + TUMORS.map(t =>
+    `<button class="chip ${state.tumor===t?'active':''}" style="--c:${color(t)}" data-t="${UI.esc(t)}"><i></i>${UI.esc(t)} <em>${DATA[t].length}</em></button>`).join('');
+}
+
+function syncUI(){
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('active', b.dataset.v===state.view));
+  const net = state.view==='net';
+  $('searchBox').style.display = net ? 'none' : '';
+  $('subbar').style.display = net ? 'none' : '';
+  $('count').style.display = net ? 'none' : '';
+  $('viewTumor').style.display = state.view==='tumor' ? '' : 'none';
+  $('viewDocs').style.display  = state.view==='docs'  ? '' : 'none';
+  $('viewNet').style.display   = net ? '' : 'none';
+  renderChips();
+  if(net) buildNetwork();
+}
+
+/* ---------- por tumor ---------- */
+function renderTumors(){
+  const q = UI.norm(state.q.trim());
+  const cards = TUMORS.filter(t => state.tumor==='all' || t===state.tumor).map(t => {
+    const docs = DATA[t].filter(d => !q || UI.norm(d).includes(q));
+    if(!docs.length) return '';
+    const label = (q && docs.length!==DATA[t].length) ? `${docs.length} de ${DATA[t].length}` : docs.length;
+    return `<article class="tumor" style="${cvars(t)}">
+      <div class="tumor-head"><div class="tumor-dot"></div><h3>${UI.esc(t)}</h3><span class="count-pill">${label} ${DATA[t].length===1?'médico':'médicos'}</span></div>
+      <div class="tumor-body">${docs.map(d =>
+        `<button class="person" data-doc="${UI.esc(d)}"><span class="mini-av">${UI.esc(UI.initial(d))}</span>${UI.esc(d)}</button>`).join('')}</div>
+    </article>`;
+  }).filter(Boolean);
+  $('viewTumor').innerHTML = cards.length ? cards.join('') : '<div class="nothing"><big>🔎</big>Nenhum médico encontrado</div>';
+}
+
+/* ---------- por médico ---------- */
+function pillsHTML(name){
+  return DOCS[name].map(t => `<button class="tag-pill" style="${cvars(t)}" data-tumor="${UI.esc(t)}">${UI.esc(t)}</button>`).join('');
+}
+function renderDocs(){
+  const q = UI.norm(state.q.trim());
+  const names = DOC_NAMES.filter(n => (!q || UI.norm(n).includes(q)) && (state.tumor==='all' || DOCS[n].includes(state.tumor)));
+  $('viewDocs').innerHTML = names.length ? names.map(n => `
+    <article class="mcard">
+      <div class="mhead"><div class="avatar">${UI.esc(UI.initial(n))}</div><div><h3>${UI.esc(n)}</h3><small>Atua em ${plural(DOCS[n].length,'área','áreas')}</small></div></div>
+      <div class="pills">${pillsHTML(n)}</div>
+    </article>`).join('') : '<div class="nothing"><big>🔎</big>Nenhum médico encontrado</div>';
+}
+
+function render(){
+  renderTumors();
+  renderDocs();
+  updateCount();
+}
+function updateCount(){
+  if(state.view==='tumor'){
+    const n = $('viewTumor').querySelectorAll('.tumor').length;
+    $('count').textContent = plural(n,'área exibida','áreas exibidas');
+  } else if(state.view==='docs'){
+    const n = $('viewDocs').querySelectorAll('.mcard').length;
+    $('count').textContent = plural(n,'médico exibido','médicos exibidos');
+  }
+}
+
+/* ---------- ficha do médico ---------- */
+function openDoctor(name){
+  UI.openModal({
+    title: name,
+    sub: 'Atua em ' + plural(DOCS[name].length,'área','áreas'),
+    html: `<div class="pills">${pillsHTML(name)}</div><p style="color:var(--muted);font-size:.82rem;font-weight:600;margin:16px 0 0">Clique em uma área para ver todos os médicos dela.</p>`
+  });
+}
+
+/* ---------- eventos ---------- */
+$('busca').addEventListener('input', UI.debounce(e => { state.q = e.target.value; render(); }, 100));
+
+$('seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  state.view = b.dataset.v; syncUI();
+});
+
+$('chips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if(!b) return;
+  state.tumor = b.dataset.t; renderChips(); render();
+});
+
+document.addEventListener('click', e => {
+  const p = e.target.closest('.person');
+  if(p){ openDoctor(p.dataset.doc); return; }
+  const t = e.target.closest('[data-tumor]');
+  if(t){ UI.closeModal(); state.tumor = t.dataset.tumor; state.view = 'tumor'; syncUI(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+});
+
+/* ---------- rede de especialistas (vis-network) ---------- */
+let net, nodes, edges, focusId = null;
+const NET_HELP = 'Clique em uma <b>área</b> ou em um <b>médico</b> para destacar as conexões. Clique de novo (ou no fundo) para limpar.';
+
+function buildNetwork(){
+  $('netInfo').innerHTML = NET_HELP;
+  if(net) return;
+  const el = $('network');
+  if(!window.vis){
+    el.innerHTML = '<div class="nothing" style="margin:20px">Não foi possível carregar o gráfico (biblioteca vis-network). Verifique a conexão com a internet e recarregue a página.</div>';
+    return;
+  }
+  const ns = [], es = [];
+  TUMORS.forEach(t => ns.push({
+    id:'t:'+t, label:t, shape:'box', margin:10, borderWidth:0,
+    color:{background:color(t), border:color(t)}, font:{color:'#ffffff', size:15, face:FACE}
+  }));
+  DOC_NAMES.forEach(d => ns.push({
+    id:'d:'+d, label:d, shape:'dot', size:11, borderWidth:2,
+    color:{background:'#e0f2f1', border:'#26a69a'}, font:{color:'#37474f', size:12, face:FACE}
+  }));
+  let k = 0;
+  TUMORS.forEach(t => DATA[t].forEach(d => es.push({ id:'e'+(k++), from:'t:'+t, to:'d:'+d, color:{color:rgba(color(t),.45)} })));
+  nodes = new vis.DataSet(ns);
+  edges = new vis.DataSet(es);
+  net = new vis.Network(el, { nodes, edges }, {
+    edges:{ width:1, smooth:{type:'continuous'}, color:{hover:'#90a4ae'} },
+    physics:{ stabilization:{iterations:300}, barnesHut:{ gravitationalConstant:-9000, springLength:150, springConstant:.03 } },
+    interaction:{ hover:true, tooltipDelay:150 }
+  });
+  net.once('stabilizationIterationsDone', () => { net.setOptions({physics:false}); net.fit({animation:{duration:400}}); });
+  net.on('click', p => { const id = p.nodes[0] || null; paint(id && id!==focusId ? id : null); });
+}
+
+function paint(id){
+  focusId = id;
+  const rel = new Set();
+  if(id){ rel.add(id); net.getConnectedNodes(id).forEach(x => rel.add(x)); }
+  nodes.update(nodes.get().map(n => {
+    const on = !id || rel.has(n.id);
+    if(n.id.startsWith('t:')){
+      const c = color(n.id.slice(2));
+      return { id:n.id, color:{background:on?c:'#eceff1', border:on?c:'#cfd8dc'}, font:{color:on?'#ffffff':'#b0bec5', size:15, face:FACE} };
+    }
+    const sel = n.id===id;
+    return { id:n.id, color:{background:on?(sel?'#ffcc80':'#e0f2f1'):'#f5f7f8', border:on?(sel?'#CC5500':'#26a69a'):'#e3e8eb'},
+             font:{color:on?'#37474f':'#c5ced3', size:12, face:FACE} };
+  }));
+  edges.update(edges.get().map(e => {
+    const on = !id || e.from===id || e.to===id;
+    const t = e.from.slice(2);
+    return { id:e.id, color:{color:on ? rgba(color(t), id ? .9 : .45) : '#eef1f4'}, width:(on && id) ? 2.5 : 1 };
+  }));
+  if(!id){ $('netInfo').innerHTML = NET_HELP; return; }
+  const name = id.slice(2);
+  $('netInfo').innerHTML = id.startsWith('t:')
+    ? `<b>${UI.esc(name)}</b> • ${plural(DATA[name].length,'médico','médicos')}: ${DATA[name].map(UI.esc).join(', ')}`
+    : `<b>${UI.esc(name)}</b> atua em ${plural(DOCS[name].length,'área','áreas')}: ${DOCS[name].map(UI.esc).join(', ')}`;
+}
+
+renderChips();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda Médica • Radioterapia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="radioterapia">
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">☢ Radioterapia</span>
+      <h1>Agenda Médica</h1>
+      <p>Consulte o médico que atende em cada dia e turno, com as vagas de pacientes novos e controles via SUS e convênio.</p>
+    </div>
+    <div class="today-box">
+      <small>Hoje</small>
+      <strong id="todayLabel">—</strong>
+      <span id="todaySub">—</span>
+    </div>
+  </div>
+</section>
+
+<main class="wrap" id="conteudo">
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-ico">👨‍⚕️</div><div><b id="kMed">0</b><span>Médicos</span></div></div>
+    <div class="kpi"><div class="kpi-ico">📅</div><div><b id="kTurnos">0</b><span>Turnos na semana</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🆕</div><div><b id="kNovos">0</b><span>Vagas para novos</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🔁</div><div><b id="kCtrl">0</b><span>Vagas para controles</span></div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search"><input type="search" id="busca" placeholder="Buscar médico..." autocomplete="off" aria-label="Buscar médico"></div>
+    <div class="chips" id="chips">
+      <button class="chip active" data-f="all"><i></i>Todos</button>
+      <button class="chip" data-f="sus"><i></i>SUS</button>
+      <button class="chip" data-f="convenio"><i></i>Convênio</button>
+      <button class="chip" data-f="residentes"><i></i>Residentes</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="seg" id="seg">
+      <button class="active" data-v="semana">Semana</button>
+      <button data-v="medicos">Por médico</button>
+    </div>
+    <button class="btn ghost" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--sus)"></i>SUS</span>
+    <span><i class="dot" style="background:var(--conv)"></i>Convênio</span>
+    <span><i class="dot" style="background:var(--res)"></i>Residentes</span>
+    <span>Clique em um médico para ver todos os horários dele</span>
+  </div>
+
+  <div id="viewSemana">
+    <div class="day-tabs" id="dayTabs"></div>
+    <div class="week" id="week"></div>
+  </div>
+  <div id="viewMedicos" class="grid" style="display:none"></div>
+
+</main>
+
+<script src="shell.js"></script>
+<script>
+/* ============ DADOS ============
+   d: 1=Seg 2=Ter 3=Qua 4=Qui 5=Sex | t: M=Manhã T=Tarde
+   n: novos | k: controles (null = sem vaga de controle)
+   Para alterar a agenda, edite apenas esta lista.            */
+const SLOTS = [
+  // SUS
+  {m:'Leonardo', c:'sus', d:2, t:'M', n:5, k:6},
+  {m:'Edilmar',  c:'sus', d:4, t:'M', n:5, k:6},
+  {m:'Andrea',   c:'sus', d:2, t:'M', n:5, k:6},
+  {m:'Andrea',   c:'sus', d:3, t:'M', n:4, k:4},
+  {m:'Carlota',  c:'sus', d:4, t:'T', n:4, k:5},
+  {m:'Denize',   c:'sus', d:1, t:'M', n:5, k:6},
+  {m:'Igor',     c:'sus', d:5, t:'M', n:5, k:6},
+  {m:'Wellinton',c:'sus', d:5, t:'M', n:5, k:6},
+  {m:'Juliana',  c:'sus', d:4, t:'M', n:5, k:6},
+  {m:'Guilherme',c:'sus', d:2, t:'M', n:5, k:6},
+  // Convênio
+  {m:'Leonardo', c:'convenio', d:2, t:'T', n:5, k:5},
+  {m:'Edilmar',  c:'convenio', d:2, t:'M', n:5, k:6},
+  {m:'Andrea',   c:'convenio', d:4, t:'M', n:5, k:6},
+  {m:'Carlota',  c:'convenio', d:5, t:'T', n:4, k:4},
+  {m:'Denize',   c:'convenio', d:2, t:'T', n:5, k:5},
+  {m:'Igor',     c:'convenio', d:1, t:'T', n:5, k:5},
+  {m:'Wellinton',c:'convenio', d:5, t:'T', n:5, k:5},
+  {m:'Juliana',  c:'convenio', d:1, t:'M', n:5, k:6},
+  {m:'Juliana',  c:'convenio', d:4, t:'T', n:4, k:null},
+  {m:'Guilherme',c:'convenio', d:3, t:'M', n:3, k:4},
+  // Residentes
+  {m:'Vivian',   c:'residentes', d:5, t:'M', n:4, k:4},
+  {m:'Vivian',   c:'residentes', d:4, t:'T', n:4, k:3},
+  {m:'Danielle', c:'residentes', d:1, t:'T', n:4, k:3},
+  {m:'Danielle', c:'residentes', d:4, t:'M', n:4, k:4},
+  {m:'Anelize',  c:'residentes', d:1, t:'M', n:4, k:6},
+  {m:'Anelize',  c:'residentes', d:5, t:'M', n:4, k:4},
+  {m:'Anelize',  c:'residentes', d:5, t:'T', n:4, k:3},
+  {m:'Alice',    c:'residentes', d:1, t:'M', n:4, k:6},
+  {m:'Alice',    c:'residentes', d:4, t:'M', n:4, k:6},
+  {m:'Alice',    c:'residentes', d:5, t:'T', n:4, k:3}
+];
+
+const DAYS = {1:'Segunda-feira',2:'Terça-feira',3:'Quarta-feira',4:'Quinta-feira',5:'Sexta-feira'};
+const DAYS_SHORT = {1:'Seg',2:'Ter',3:'Qua',4:'Qui',5:'Sex'};
+const SHIFT = {M:{label:'Manhã',ico:'☀️'}, T:{label:'Tarde',ico:'🌤️'}};
+const CATS = {sus:'SUS', convenio:'Convênio', residentes:'Residente'};
+
+const $ = id => document.getElementById(id);
+const sum = (arr,f) => arr.reduce((a,x)=>a+(f(x)||0),0);
+const plural = (n,s,p) => n + ' ' + (n===1 ? s : p);
+
+const jsDay = new Date().getDay();                       // 0=Dom ... 6=Sáb
+const todayIdx = (jsDay>=1 && jsDay<=5) ? jsDay : 0;
+const state = {filter:'all', q:'', view:'semana', day: todayIdx || 1};
+
+function filtered(){
+  const q = UI.norm(state.q.trim());
+  return SLOTS.filter(s =>
+    (state.filter==='all' || s.c===state.filter) &&
+    (!q || UI.norm(s.m).includes(q))
+  );
+}
+
+/* ---------- cabeçalho "Hoje" ---------- */
+function renderToday(){
+  const fmt = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  $('todayLabel').textContent = fmt.charAt(0).toUpperCase()+fmt.slice(1);
+  if(todayIdx){
+    const n = new Set(SLOTS.filter(s=>s.d===todayIdx).map(s=>s.m)).size;
+    $('todaySub').textContent = n + (n===1 ? ' médico atendendo hoje' : ' médicos atendendo hoje');
+  } else {
+    $('todaySub').textContent = 'Sem atendimento no fim de semana';
+  }
+}
+
+/* ---------- indicadores ---------- */
+function renderKpis(list){
+  $('kMed').textContent = new Set(list.map(s=>s.m)).size;
+  $('kTurnos').textContent = list.length;
+  $('kNovos').textContent = sum(list,s=>s.n);
+  $('kCtrl').textContent = sum(list,s=>s.k);
+}
+
+/* ---------- visão semanal ---------- */
+function docHTML(s){
+  const k = s.k==null ? '' : ` · <b>${s.k}</b> controles`;
+  return `<button class="doc cat-${s.c}" data-m="${UI.esc(s.m)}">
+    <div class="n">${UI.esc(s.m)}<span class="tag">${CATS[s.c]}</span></div>
+    <div class="v"><b>${s.n}</b> novos${k}</div>
+  </button>`;
+}
+
+function renderWeek(list){
+  let h = '<div></div>';
+  for(let d=1; d<=5; d++){
+    const cnt = new Set(list.filter(s=>s.d===d).map(s=>s.m)).size;
+    h += `<div class="col-head ${d===todayIdx?'today':''}">${DAYS_SHORT[d]}<small>${plural(cnt,'médico','médicos')}</small></div>`;
+  }
+  ['M','T'].forEach(t=>{
+    h += `<div class="row-head"><span class="ico">${SHIFT[t].ico}</span>${SHIFT[t].label}</div>`;
+    for(let d=1; d<=5; d++){
+      const items = list.filter(s=>s.d===d && s.t===t).sort((a,b)=>a.m.localeCompare(b.m,'pt-BR'));
+      const body = items.length ? items.map(docHTML).join('') : '<div class="empty">Sem atendimento</div>';
+      const foot = items.length
+        ? `<div class="cell-foot"><span><b>${sum(items,s=>s.n)}</b> novos</span><span><b>${sum(items,s=>s.k)}</b> controles</span></div>` : '';
+      h += `<div class="cell ${d===todayIdx?'today':''}" data-day="${d}" data-hide="${d===state.day?0:1}">
+        <div class="shift-tag">${SHIFT[t].ico} ${SHIFT[t].label}</div>${body}${foot}</div>`;
+    }
+  });
+  $('week').innerHTML = h;
+
+  $('dayTabs').innerHTML = [1,2,3,4,5].map(d =>
+    `<button data-d="${d}" class="${d===state.day?'active':''}">${DAYS_SHORT[d]}${d===todayIdx?' •':''}</button>`).join('');
+}
+
+/* ---------- por médico ---------- */
+function doctorCard(name, slots){
+  const mine = slots.filter(s=>s.m===name).sort((a,b)=> a.d-b.d || (a.t<b.t?-1:1));   // manhã antes da tarde
+  const cats = [...new Set(mine.map(s=>CATS[s.c]))].join(' · ');
+  const rows = mine.map(s=>`
+    <div class="slot cat-${s.c}">
+      <div class="when"><span class="pill">${CATS[s.c]}</span><strong>${DAYS[s.d]}</strong><span>${SHIFT[s.t].ico} ${SHIFT[s.t].label}</span></div>
+      <div class="nums">
+        <div class="num"><b>${s.n}</b><small>novos</small></div>
+        ${s.k==null ? '' : `<div class="num"><b>${s.k}</b><small>contr.</small></div>`}
+      </div>
+    </div>`).join('');
+  return `<article class="mcard">
+    <div class="mhead"><div class="avatar">${UI.esc(UI.initial(name))}</div><div><h3>${UI.esc(name)}</h3><small>${cats}</small></div></div>
+    <div class="slots">${rows}</div>
+    <div class="mfoot"><span><b>${plural(mine.length,'turno','turnos')}</b>/semana</span><span><b>${sum(mine,s=>s.n)}</b> novos · <b>${sum(mine,s=>s.k)}</b> controles</span></div>
+  </article>`;
+}
+
+function renderMedicos(list){
+  const names = [...new Set(list.map(s=>s.m))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  $('viewMedicos').innerHTML = names.length
+    ? names.map(n=>doctorCard(n,list)).join('')
+    : '<div class="nothing"><big>🔎</big>Nenhum médico encontrado</div>';
+}
+
+/* ---------- render geral ---------- */
+function render(){
+  const list = filtered();
+  renderKpis(list);
+  renderWeek(list);
+  renderMedicos(list);
+  $('viewSemana').style.display  = state.view==='semana'  ? '' : 'none';
+  $('viewMedicos').style.display = state.view==='medicos' ? '' : 'none';
+}
+
+/* ---------- eventos ---------- */
+$('busca').addEventListener('input', e=>{ state.q = e.target.value; render(); });
+
+$('chips').addEventListener('click', e=>{
+  const b = e.target.closest('.chip'); if(!b) return;
+  document.querySelectorAll('#chips .chip').forEach(c=>c.classList.remove('active'));
+  b.classList.add('active'); state.filter = b.dataset.f; render();
+});
+
+$('seg').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#seg button').forEach(c=>c.classList.remove('active'));
+  b.classList.add('active'); state.view = b.dataset.v; render();
+});
+
+$('dayTabs').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  state.day = +b.dataset.d; renderWeek(filtered());
+});
+
+$('week').addEventListener('click', e=>{
+  const d = e.target.closest('.doc'); if(!d) return;
+  UI.openModal({ bare:true, html: doctorCard(d.dataset.m, SLOTS) });   // sempre mostra todos os horários do médico
+});
+
+renderToday();
+render();
+</script>
+</body>
+</html>

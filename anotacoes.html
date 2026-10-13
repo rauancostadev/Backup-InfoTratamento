@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Respostas Rápidas • Central de Marcação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<!-- LOGIN: esconde o conteúdo até a pessoa entrar (removido pelo script de login no fim da página) -->
+<script>document.documentElement.classList.add('auth-lock');</script>
+<style>
+/* ============ LOGIN / PAINEL DE CONTROLE ============ */
+html.auth-lock .hero, html.auth-lock #conteudo{display:none}
+.user-btn{margin-left:auto;margin-right:10px;background:#fff;color:var(--navy);border:1px solid var(--line);padding:9px 14px;border-radius:10px;font-weight:700;font-size:.85rem;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:.2s}
+.user-btn:hover{border-color:var(--azul);color:var(--azul)}
+.user-btn + .menu-btn{margin-left:0}
+@media(max-width:680px){.user-btn{max-width:56px;padding:9px 12px}.user-btn span{display:none}}
+.au-gate{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px}
+.au-card{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:28px 26px}
+.au-card h1{margin:0 0 4px;font-size:1.35rem;color:var(--navy);font-weight:800}
+.au-card .au-sub{margin:0 0 18px;color:var(--muted);font-size:.88rem}
+.au-tabs{display:flex;gap:4px;background:#eef2f7;padding:4px;border-radius:12px;margin-bottom:18px}
+.au-tabs button{flex:1;border:0;background:transparent;padding:9px;border-radius:9px;font-weight:700;font-size:.85rem;color:var(--muted)}
+.au-tabs button.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(15,23,42,.1)}
+.au-f{display:block;margin-bottom:14px}
+.au-f > span{display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.au-in{position:relative}
+.au-in input,.au-f textarea,.au-f input.au-plain{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font:inherit;font-size:.95rem;outline:none;transition:.2s}
+.au-in input{padding-right:46px}
+.au-in input:focus,.au-f textarea:focus,.au-f input.au-plain:focus{border-color:var(--azul);box-shadow:0 0 0 4px rgba(26,79,136,.12)}
+.au-f textarea{min-height:130px;resize:vertical}
+.au-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;font-size:1rem;padding:6px 8px;opacity:.6}
+.au-eye:hover{opacity:1}
+.au-rules{list-style:none;margin:-4px 0 14px;padding:0;font-size:.8rem;color:var(--muted);display:grid;gap:3px}
+.au-rules li::before{content:"○ ";color:#cbd5e1}
+.au-rules li.ok{color:var(--verde);font-weight:600}
+.au-rules li.ok::before{content:"✔ ";color:var(--verde)}
+.au-msg{display:none;margin:0 0 14px;padding:10px 12px;border-radius:10px;font-size:.85rem;font-weight:600}
+.au-msg.show{display:block}
+.au-msg.err{background:#fdecea;color:var(--vermelho)}
+.au-msg.ok{background:var(--ok-bg);color:var(--verde)}
+.au-msg.warn{background:#fff8e1;color:#8a5a00}
+.au-go{width:100%;padding:12px;font-size:.95rem;border-radius:12px}
+.au-go[disabled]{opacity:.6;pointer-events:none}
+.au-link{display:block;margin:14px auto 0;background:none;border:0;color:var(--azul);font-weight:700;font-size:.83rem;text-decoration:underline}
+.au-note{margin-top:14px;font-size:.76rem;color:var(--muted);text-align:center}
+.au-panel-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.au-panel-tabs button{border:1px solid var(--line);background:#fff;color:var(--muted);padding:8px 14px;border-radius:999px;font-weight:700;font-size:.83rem}
+.au-panel-tabs button.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.au-list{display:grid;gap:8px;margin-bottom:18px}
+.au-item{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+.au-item b{display:block;font-size:.9rem;color:var(--navy);overflow-wrap:anywhere}
+.au-item small{color:var(--muted);display:block;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.au-item .au-acts{display:flex;gap:6px;flex-shrink:0}
+.au-empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed #cbd5e1;border-radius:12px;font-weight:600;font-size:.88rem}
+.au-sep{border:0;border-top:1px solid var(--line);margin:4px 0 16px}
+.btn.danger{background:var(--vermelho)}
+.btn.danger:hover{background:#8e1c1c}
+.nova-nota{margin-left:auto}
+</style>
+</head>
+<body data-page="anotacoes">
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">📋 Respostas Rápidas</span>
+      <h1>Mensagens Prontas</h1>
+      <p>Clique em uma resposta para copiá-la na hora. Use <b>Ver</b> para conferir como ela aparece no WhatsApp antes de enviar.</p>
+    </div>
+  </div>
+</section>
+
+<main class="wrap" id="conteudo">
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-ico">💬</div><div><b id="kTotal">0</b><span>Respostas</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🗂️</div><div><b id="kGroups">0</b><span>Categorias</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🕘</div><div><b id="kRecent">0</b><span>Usadas recentemente</span></div></div>
+    <div class="kpi"><div class="kpi-ico">⏰</div><div><b class="txt" id="kNow">—</b><span>Sugerida agora</span></div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search"><input type="search" id="busca" placeholder="Buscar resposta (título ou conteúdo)..." autocomplete="off" aria-label="Buscar resposta"></div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="recent hidden" id="recent"></div>
+
+  <div id="lista"></div>
+  <div class="page-end"></div>
+
+</main>
+
+<script src="shell.js"></script>
+<script>
+/* ============ DADOS ============
+   GROUPS: categorias e seus botões (id + rótulo)
+   TEXTOS: o texto de cada resposta (a chave é o id). *texto* vira negrito no WhatsApp. */
+const GROUPS = [
+ {
+  "title": "Saudações",
+  "items": [
+   {
+    "id": "bomdia",
+    "label": "Bom Dia"
+   },
+   {
+    "id": "boatarde",
+    "label": "Boa Tarde"
+   },
+   {
+    "id": "boanoite",
+    "label": "Boa Noite"
+   }
+  ]
+ },
+ {
+  "title": "Informações",
+  "items": [
+   {
+    "id": "entradaregula",
+    "label": "Passo a Passo do Regula"
+   },
+   {
+    "id": "preencherinfopaciente",
+    "label": "Preencher Informações do Paciente"
+   },
+   {
+    "id": "solicitacao",
+    "label": "Solicitação da Triagem"
+   },
+   {
+    "id": "hematologiaunimed",
+    "label": "Hematologia Unimed"
+   },
+   {
+    "id": "hematonaoautorizado",
+    "label": "Hematologia Não Autorizada"
+   },
+   {
+    "id": "solicitarpendencia",
+    "label": "Solicitar Pendência"
+   }
+  ]
+ },
+ {
+  "title": "Contatos",
+  "items": [
+   {
+    "id": "contatosecretariasus",
+    "label": "Secretária SUS"
+   },
+   {
+    "id": "contatosecretariaconv",
+    "label": "Secretária Convênio"
+   },
+   {
+    "id": "secretariaradio",
+    "label": "Secretária Radio"
+   },
+   {
+    "id": "secretariatelefonia",
+    "label": "Secretária pela Telefonia"
+   },
+   {
+    "id": "contatoquimioterapiasus",
+    "label": "Contato Quimioterapia SUS"
+   },
+   {
+    "id": "contatoquimioterapiaconvenio",
+    "label": "Contato Quimioterapia Convênio"
+   },
+   {
+    "id": "contatopediatria",
+    "label": "Contato Pediatria"
+   },
+   {
+    "id": "contatocentraldemarcaçao",
+    "label": "Contato Central de Marcação"
+   },
+   {
+    "id": "semvagaradio",
+    "label": "Radioterapia Sem Vagas"
+   }
+  ]
+ },
+ {
+  "title": "Valores de Consultas",
+  "items": [
+   {
+    "id": "consultahematologia",
+    "label": "Valor Consulta Hematologia"
+   },
+   {
+    "id": "consultaoncologia",
+    "label": "Valor Consulta Oncologia"
+   },
+   {
+    "id": "consultaradio",
+    "label": "Valor Consulta Radioterapia"
+   },
+   {
+    "id": "consultaoncogenetica",
+    "label": "Valor Consulta Oncogenética"
+   }
+  ]
+ },
+ {
+  "title": "Informações 1ª Vez",
+  "items": [
+   {
+    "id": "hematoconvenio",
+    "label": "Hematologia Convênio"
+   },
+   {
+    "id": "hematosus",
+    "label": "Hematologia SUS"
+   },
+   {
+    "id": "hematoparticular",
+    "label": "Hematologia Particular"
+   },
+   {
+    "id": "oncoconvenio",
+    "label": "Oncologia Convênio"
+   },
+   {
+    "id": "oncosus",
+    "label": "Oncologia SUS"
+   },
+   {
+    "id": "oncoparticular",
+    "label": "Oncologia Particular"
+   },
+   {
+    "id": "radioconvenio",
+    "label": "Radioterapia Convênio"
+   },
+   {
+    "id": "radiosus",
+    "label": "Radioterapia SUS"
+   },
+   {
+    "id": "radioparticular",
+    "label": "Radioterapia Particular"
+   }
+  ]
+ },
+ {
+  "title": "Preparos das Consultas",
+  "items": [
+   {
+    "id": "consultasustratamento",
+    "label": "Consulta SUS - Tratamento"
+   },
+   {
+    "id": "consultasusinterior",
+    "label": "Consulta SUS - Interior"
+   },
+   {
+    "id": "consultasusnatal",
+    "label": "Consulta SUS - Natal"
+   },
+   {
+    "id": "consultaparticular",
+    "label": "Consulta Particular"
+   },
+   {
+    "id": "consultaconvenio",
+    "label": "Consulta Convênio"
+   }
+  ]
+ },
+ {
+  "title": "Finalizar atendimento",
+  "items": [
+   {
+    "id": "agendamentofeito",
+    "label": "Agendamento Realizado"
+   },
+   {
+    "id": "finalizandoexpediente",
+    "label": "Finalizando Expediente"
+   },
+   {
+    "id": "agradecimentonasemana",
+    "label": "Agradecer na Semana"
+   },
+   {
+    "id": "agradecimentofinaldesemana",
+    "label": "Agradecer Final de Semana"
+   }
+  ]
+ }
+];
+const TEXTOS = {
+    bomdia: `Bom dia!
+Me chamo Rauan, atendente nas especialidades de Oncologia Clínica e Hematologia pela unidade de Natal.
+
+Para iniciarmos, me informe seu nome e se a consulta seria por convênio, particular ou pelo SUS?`,
+
+    boatarde: `Boa tarde!
+Me chamo Rauan, atendente nas especialidades de Oncologia Clínica e Hematologia pela unidade de Natal.
+
+Para iniciarmos, me informe seu nome e se a consulta seria por convênio, particular ou pelo SUS?`,
+
+    boanoite: `Boa noite!
+Me chamo Rauan, atendente nas especialidades de Oncologia Clínica e Hematologia pela unidade de Natal.
+
+Para iniciarmos, me informe seu nome e se a consulta seria por convênio, particular ou pelo SUS?`,
+
+    solicitacao: `Muito obrigado! Segue abaixo as orientações:
+
+*As informações foram encaminhadas ao setor responsável para ser realizada a triagem.* ✅
+
+- Favor aguardar a análise do médico.
+- Após a análise, retornaremos o contato sobre a liberação da consulta.
+
+Obs: Caso ultrapasse o prazo de 72h úteis e não tivermos mantido contato com o paciente, favor nos contate imediatamente.`,
+
+    agendamentofeito: `*Confirmado o agendamento* ✅
+
+Teria dúvidas ou posso lhe ajudar em algo mais? 😊`,
+
+    agradecimentonasemana: `Meus agradecimentos e lhe desejo uma ótima e abençoada semana! 🙏`,
+
+    agradecimentofinaldesemana: `Meus agradecimentos e lhe desejo um ótimo e abençoado final de semana! 🙏`,
+
+    agendamentofeito: `*Confirmado o agendamento* ✅
+
+Teria dúvidas ou posso lhe ajudar em algo mais? 😊`,
+
+    preencherinfopaciente: `*Favor preencher as seguintes informações:*
+ 
+- *Nome completo:* 
+- *CPF:* 
+- *Data de nascimento:* 
+- *Número de telefone:* 
+
+- *Foi sugerido algum médico?*`,
+
+    contatosecretariaconv: `Vitória ou Jéssica
+*(84) 99413-9912* - Secretária da Oncologia/Hematologia Convênio (WhatsApp)
+
+Segunda a sexta
+*Horário de atendimento:* 07:00 às 17:00`,
+
+    contatosecretariasus: `*(84) 4009-5573* - Secretária da Oncologia/Hematologia SUS (Apenas via Ligação)
+
+Segunda a sexta
+*Horário de atendimento:* 08:00 às 16:00`,
+
+    contatoquimioterapiasus: `*(84) 4009-5583* - Quimioterapia SUS (Apenas via WhatsApp)
+
+Segunda a sexta
+*Horário de atendimento:* 08:00 às 16:00`,
+
+    contatoquimioterapiaconvenio: `*(84) 98843-3323* - Quimioterapia Convênio (Apenas via WhatsApp)
+
+Segunda a sexta
+*Horário de atendimento:* 08:00 às 16:00`,
+
+    hematonaoautorizado: `O motivo do meu contato é a respeito da solicitação da triagem, os exames foram apresentados aos médicos hematologista e a consulta não foi liberada.
+
+Por sermos um hospital voltado ao diagnóstico de neoplasias malignas, a triagem realizada não identificou achados sugestivos de malignidade.
+
+Contamos com a sua compreensão e qualquer dúvida, pode retornar o contato conosco, estamos à disposição.`,
+
+    solicitarpendencia: `ENCAIXE
+
+NOME: 
+CPF: 
+CTT: 
+
+Motivo: `,
+
+    contatopediatria: `Atendimento do setor pediátrico via WhatsApp:
+*(84) 4009-5501*
+Selecionar a opção 5 - Hospital Pediatria
+
+Ou via ligação, através do número:
+*(84) 4009-5688* - Pediatria
+
+Segunda a sexta
+*Horário de atendimento:* 08:00 às 16:00`,
+
+    contatocentraldemarcaçao: `Atendimento via WhatsApp: 
+*(84) 4009-5601*
+Preencher as informações e ao solicitar a especialidade escrever "Cirurgião Oncológico"
+
+Ou via ligação, através do número:
+*(84) 4009-5600* - Central de Marcação
+
+Segunda a sexta
+*Horário de atendimento:* 07:00 às 18:00`,
+
+    entradaregula: `*Segue o passo a passo para dar entrada na autorização:*
+
+1º Passo: Se dirigir na secretaria de saúde do município, portando o documento pessoal com foto e CPF.
+2º Passo: Solicitando inserir a consulta, informando a especialidade, nome do médico e os dados do paciente.
+3º Passo: Aguardar 20 dias. Após o prazo, retorne o contato conosco para liberarmos a autorização.
+
+Caso a secretaria de saúde tenha dúvidas, favor, manter contato diretamente com a Sesap/RN e serão orientados.`,
+
+    secretariatelefonia: `*Setor de Telefonia:*
+Entrar em contato via ligação através do número *(84) 4009-5501*, selecionar a *opção 9* para falar com o setor de *telefonia* e em seguida, solicitar falar com a secretária
+ 
+Segunda a sexta
+*Horário de atendimento:* 08:00 às 16:00`,
+
+    finalizandoexpediente: `Estamos finalizando as nossas operações de atendimento e contamos com sua compreensão.
+    
+Favor nos contatar amanhã para darmos continuidade ao atendimento. Tenha uma ótima noite!`,
+
+    secretariaradio: `*(84) 4009-5575* - Secretária Radioterapia (Apenas via Ligação)
+*(84) 4009-7433* - Secretária Radioterapia (Apenas via Ligação)
+
+Segunda a sexta
+*Horário de atendimento:* 08:00 às 16:00`,
+
+   consultasustratamento: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
+   
+*Paciente deverá trazer no dia da consulta:*  
+- Documentos pessoais, comprovante de residência em seu nome, cartão do SUS atualizado do município em que reside, encaminhamento/ficha de referência e exames anteriores, caso tenha.
+
+*Observação:* Não precisa solicitar a autorização para esta consulta, pois o paciente segue em tratamento.`,
+
+    consultasusnatal: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
+    
+*Paciente deverá trazer no dia da consulta:*  
+- Documentos pessoais, comprovante de residência em seu nome, cartão do SUS atualizado do município de Natal, encaminhamento/ficha de referência e exames anteriores, caso tenha.`,
+
+    consultasusinterior: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
+
+*Paciente deverá trazer no dia da consulta:*  
+- Documentos pessoais, comprovante de residência em seu nome, cartão do SUS atualizado do município em que reside, encaminhamento/ficha de referência e exames anteriores, caso tenha.`,
+
+    consultaconvenio: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
+    
+*Paciente deverá trazer no dia da consulta:*  
+- Documentos pessoais e exames anteriores para mostrar (caso tenha);
+- Carteira do Convênio.
+
+*Observação:* Não esquecer de agendar o seu retorno após a consulta.`,
+
+    consultaparticular: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
+    
+*Paciente deverá trazer no dia da consulta:*  
+- Documentos pessoais e exames anteriores para mostrar (caso tenha);
+
+*Observação:* Não esquecer de agendar o seu retorno após a consulta.`,
+
+    consultaoncologia: `A consulta oncologista clínico tem o valor de R$ 450,00, pode parcelar em até 6 vezes, sem juros no cartão de crédito, com direito a um retorno de até 30 dias`,
+
+    consultahematologia: `A consulta hematologista tem o valor de R$ 450,00, pode parcelar em até 6 vezes, sem juros no cartão de crédito, com direito a um retorno de até 45 dias`,
+
+    consultaradio: `A consulta radioterapeuta tem o valor de R$ 250,00, pode parcelar em até 4 vezes, sem juros no cartão de crédito, com direito a um retorno de até 30 dias`,
+
+    consultaoncogenetica: `A consulta oncogeneticista tem o valor de R$ 500,00, pode parcelar em até 6 vezes, sem juros no cartão de crédito, com direito a um retorno de até 30 dias`,
+      
+    hematologiaunimed: `*Hematologia para adultos, convênio Unimed:*
+Não atende gestantes;
+É priorizado os pacientes oncológicos.
+
+Para passar pela triagem, se faz necessário nos enviar via WhatsApp:
+*Resultado do hemograma e o encaminhamento médico, caso tenha.*
+
+Encaminharemos a solicitação da triagem, a médica avaliará e retornaremos o contato para informar sobre a liberação da consulta.`,
+
+    semvagaradio: `Estamos sem vagas disponíveis, os agendamentos foram disponibilizados até o mês de agosto, porém todas as vagas já foram preenchidas.
+
+Em casos de urgências ou mostrar exames, poderá vir presencialmente na unidade do CECAN ou manter contato *via WhatsApp* com a secretária da radioterapia, através do número *(84) 4009-5581.*
+
+Segunda a sexta
+*Horário de atendimento:* 08:00 às 16:00`,
+
+    hematoconvenio: `Atendimentos por convênio com a hematologia, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado do *hemograma* ou *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
+    hematosus: `Atendimentos pelo SUS com a hematologia, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado da *biópsia* ou *hemograma* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
+    hematoparticular: `A consulta hematologista tem o valor de R$ 450,00, pode parcelar em até 6 vezes e o paciente tem direito ao retorno de até 45 dias`,
+      
+    oncoconvenio: `Atendimentos por convênio com a oncologia clínica, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado dos *exames de imagem* ou *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
+    oncosus: `Atendimentos pelo SUS com a oncologia clínica, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado da *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
+    oncoparticular: `Atendimentos via particular com a oncologia clínica, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado dos *exames de imagem* ou *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
+      
+    radioconvenio: `Atendimentos por convênio com a radioterapia, se faz necessário nos enviar via WhatsApp o resultado da *biópsia* e *encaminhamento médico* para passar pela triagem. Após a análise dos médicos, a consulta poderá ser liberada.`,
+    radiosus: `Atendimentos pelo SUS com a radioterapia, se faz necessário nos enviar via WhatsApp o resultado da *biópsia* e *encaminhamento médico* para passar pela triagem. Após a análise dos médicos, a consulta poderá ser liberada.`,
+    radioparticular: `Solicitar no grupo de 1ª vez da radioterapia, portando apenas o *encaminhamento médico*.`
+  };
+
+const META = {
+  'Saudações':              { ico:'👋', c:'#1a4f88' },
+  'Informações':            { ico:'ℹ️', c:'#00838f' },
+  'Contatos':               { ico:'📞', c:'#CC5500' },
+  'Valores de Consultas':   { ico:'💰', c:'#2e7d32' },
+  'Informações 1ª Vez':     { ico:'🆕', c:'#6a1b9a' },
+  'Preparos das Consultas': { ico:'🎒', c:'#c2185b' },
+  'Finalizar atendimento':  { ico:'✅', c:'#455a64' }
+};
+const meta = g => META[g] || { ico:'💬', c:'#1a4f88' };
+const cvars = g => `--c:${meta(g).c};--bg-c:${meta(g).c}1f`;
+
+const $ = id => document.getElementById(id);
+const ITEMS = GROUPS.flatMap(g => g.items.map(i => ({ id:i.id, label:i.label, g:g.title, text:TEXTOS[i.id] || '' })));
+ITEMS.forEach(i => i.nq = UI.norm(i.label + ' ' + i.text));
+const byId = Object.fromEntries(ITEMS.map(i => [i.id, i]));
+
+const state = { q:'', g:'all' };
+const waHTML = t => UI.esc(t).replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>');
+const clean = t => t.replace(/\*/g, '').replace(/[ \t]+/g, ' ').trim();
+
+/* saudação sugerida pelo horário */
+const hour = new Date().getHours();
+const NOW_ID = hour < 12 ? 'bomdia' : hour < 18 ? 'boatarde' : 'boanoite';
+
+/* usadas recentemente (guardadas só neste navegador) */
+let recent = (UI.store.get('rr_recent', []) || []).filter(id => byId[id]).slice(0, 6);
+
+function use(id){
+  recent = [id].concat(recent.filter(x => x !== id)).slice(0, 6);
+  UI.store.set('rr_recent', recent);
+  renderRecent();
+}
+function copyItem(id){
+  const it = byId[id]; if(!it) return;
+  UI.copy(it.text, 'Copiado: ' + it.label);
+  use(id);
+}
+
+function renderRecent(){
+  $('kRecent').textContent = recent.length;
+  const box = $('recent');
+  box.classList.toggle('hidden', !recent.length);
+  box.innerHTML = '<span class="chips-label">Recentes</span>' + recent.map(id =>
+    `<button class="chip" data-copy="${UI.esc(id)}" type="button" title="Copiar novamente">${UI.esc(byId[id].label)}</button>`).join('') +
+    '<button class="btn ghost" id="clearRecent" type="button" style="margin-left:auto">Limpar</button>';
+}
+
+function renderChips(){
+  $('chips').innerHTML =
+    `<button class="chip ${state.g==='all'?'active':''}" data-g="all">Todas <em>${ITEMS.length}</em></button>` +
+    GROUPS.map(g => `<button class="chip ${state.g===g.title?'active':''}" style="--c:${meta(g.title).c}" data-g="${UI.esc(g.title)}"><i></i>${meta(g.title).ico} ${UI.esc(g.title)} <em>${g.items.length}</em></button>`).join('');
+}
+
+function card(it){
+  const now = it.id === NOW_ID ? '<span class="count-pill" style="--c:#2e7d32;--bg-c:#e8f5e9">Sugerida agora</span>' : '';
+  return `<article class="tpl" style="${cvars(it.g)}" data-copy="${UI.esc(it.id)}" tabindex="0" role="button" aria-label="Copiar ${UI.esc(it.label)}">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><h3>${UI.esc(it.label)}</h3>${now}</div>
+    <p class="prev">${UI.esc(clean(it.text))}</p>
+    <div class="acts">
+      <button class="btn" data-copy="${UI.esc(it.id)}" type="button">📋 Copiar</button>
+      <button class="btn ghost" data-view="${UI.esc(it.id)}" type="button">👁 Ver</button>
+    </div>
+  </article>`;
+}
+
+function render(){
+  const q = UI.norm(state.q.trim());
+  const list = ITEMS.filter(i => (state.g==='all' || i.g===state.g) && (!q || i.nq.includes(q)));
+  $('kTotal').textContent = list.length;
+  $('kGroups').textContent = new Set(list.map(i => i.g)).size;
+  $('lista').innerHTML = GROUPS.map(g => {
+    const items = list.filter(i => i.g===g.title);
+    if(!items.length) return '';
+    return `<section class="section" style="${cvars(g.title)}">
+      <div class="sec-head"><h2>${meta(g.title).ico} ${UI.esc(g.title)}</h2><span class="count-pill">${items.length}</span></div>
+      <div class="tpl-grid">${items.map(card).join('')}</div>
+    </section>`;
+  }).join('') || '<div class="nothing"><big>🔎</big>Nenhuma resposta encontrada</div>';
+  renderChips();
+}
+
+function viewItem(id){
+  const it = byId[id]; if(!it) return;
+  const m = UI.openModal({
+    title: it.label, sub: it.g,
+    html: `<div class="wa-bg"><div class="wa">${waHTML(it.text)}</div></div>`,
+    foot: '<a class="btn wa-btn" id="mWa" target="_blank" rel="noopener noreferrer">WhatsApp</a><button class="btn" id="mCopy" type="button">📋 Copiar</button>'
+  });
+  m.foot.querySelector('#mWa').href = 'https://wa.me/?text=' + encodeURIComponent(it.text);
+  m.foot.querySelector('#mCopy').onclick = () => { copyItem(id); UI.closeModal(); };
+}
+
+/* ---------- eventos ---------- */
+$('busca').addEventListener('input', UI.debounce(e => { state.q = e.target.value; render(); }, 100));
+$('chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if(!b) return; state.g = b.dataset.g; render(); });
+
+document.addEventListener('click', e => {
+  if(e.target.closest('#clearRecent')){ recent = []; UI.store.set('rr_recent', []); renderRecent(); return; }
+  const v = e.target.closest('[data-view]'); if(v){ e.stopPropagation(); viewItem(v.dataset.view); return; }
+  const c = e.target.closest('[data-copy]'); if(c){ copyItem(c.dataset.copy); }
+});
+$('lista').addEventListener('keydown', e => {
+  if((e.key==='Enter' || e.key===' ') && e.target.classList.contains('tpl')){
+    e.preventDefault(); copyItem(e.target.dataset.copy);
+  }
+});
+
+const nowItem = byId[NOW_ID];
+$('kNow').textContent = nowItem ? nowItem.label : '—';
+renderRecent();
+render();
+</script>
+
+<script>
+/* =====================================================================
+   LOGIN, PAINEL DE CONTROLE E ANOTAÇÕES POR USUÁRIO
+   ---------------------------------------------------------------------
+   Banco de dados: Firebase (Authentication + Firestore). Para vincular,
+   cole abaixo as chaves do seu projeto (Console Firebase > Configurações
+   do projeto > Seus aplicativos > App da Web). Passo a passo no LEIA-ME.txt.
+
+   Enquanto FIREBASE_CONFIG estiver vazio, a página roda em MODO DE TESTE
+   LOCAL: contas e anotações ficam só neste navegador (não é um banco real).
+   ===================================================================== */
+(function () {
+'use strict';
+
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  appId: ""
+};
+
+const GRUPO = 'Minhas Anotações';
+const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const q = (s, r) => (r || document).querySelector(s);
+const esc = UI.esc;
+
+/* ---------- regra da senha: mínimo 8, letras, números e caractere especial ---------- */
+const RULES = [
+  { t: 'Mínimo de 8 caracteres',  ok: p => p.length >= 8 },
+  { t: 'Contém letras',           ok: p => /\p{L}/u.test(p) },
+  { t: 'Contém números',          ok: p => /\d/.test(p) },
+  { t: 'Contém caractere especial (ex.: ! @ # $ % &)', ok: p => /[^\p{L}\d\s]/u.test(p) }
+];
+const pwValid = p => RULES.every(r => r.ok(p));
+const rulesHTML = () => '<ul class="au-rules">' + RULES.map(r => '<li>' + esc(r.t) + '</li>').join('') + '</ul>';
+function bindRules(input, list){
+  const upd = () => [...list.children].forEach((li, i) => li.classList.toggle('ok', RULES[i].ok(input.value)));
+  input.addEventListener('input', upd); upd();
+}
+
+const ERROS = {
+  'auth/invalid-credential': 'E-mail ou senha incorretos.',
+  'auth/wrong-password': 'E-mail ou senha incorretos.',
+  'auth/user-not-found': 'E-mail ou senha incorretos.',
+  'auth/invalid-email': 'E-mail inválido.',
+  'auth/email-already-in-use': 'Já existe uma conta com este e-mail.',
+  'auth/weak-password': 'Senha fraca. Siga os requisitos da senha.',
+  'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+  'auth/network-request-failed': 'Sem conexão com o servidor. Verifique sua internet.',
+  'auth/requires-recent-login': 'Por segurança, saia e entre novamente antes de trocar a senha.',
+  'permission-denied': 'Sem permissão no banco de dados. Confira as regras do Firestore (LEIA-ME).',
+  'local/exists': 'Já existe uma conta com este e-mail.',
+  'local/nocrypto': 'O modo de teste exige HTTPS ou localhost.',
+  'local/noreset': 'Redefinição por e-mail só funciona com o banco Firebase configurado.'
+};
+const erroMsg = e => ERROS[e && e.code] || ('Não foi possível concluir. ' + ((e && e.message) || ''));
+
+/* =============== BACKEND 1: Firebase =============== */
+async function backendFirebase(){
+  const [app, A, F] = await Promise.all([
+    import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')
+  ]);
+  const fb = app.initializeApp(FIREBASE_CONFIG), auth = A.getAuth(fb), db = F.getFirestore(fb);
+  auth.languageCode = 'pt-BR';
+  const col = () => F.collection(db, 'users', auth.currentUser.uid, 'notas');
+  return {
+    mode: 'firebase',
+    watch: cb => A.onAuthStateChanged(auth, u => cb(u ? { id: u.uid, email: u.email } : null)),
+    signIn: (e, p) => A.signInWithEmailAndPassword(auth, e, p),
+    signUp: (e, p) => A.createUserWithEmailAndPassword(auth, e, p),
+    signOut: () => A.signOut(auth),
+    reset: e => A.sendPasswordResetEmail(auth, e),
+    async changePw(cur, nw){
+      const u = auth.currentUser;
+      await A.reauthenticateWithCredential(u, A.EmailAuthProvider.credential(u.email, cur));
+      await A.updatePassword(u, nw);
+    },
+    async list(){ return (await F.getDocs(col())).docs.map(d => Object.assign({ id: d.id }, d.data())); },
+    async save(n){
+      const data = { titulo: n.titulo, texto: n.texto, atualizado: Date.now() };
+      if (n.id) await F.setDoc(F.doc(col(), n.id), data); else await F.addDoc(col(), data);
+    },
+    del: id => F.deleteDoc(F.doc(col(), id))
+  };
+}
+
+/* =============== BACKEND 2: teste local (localStorage) =============== */
+function backendLocal(){
+  const S = UI.store, listeners = [];
+  const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+  async function hash(pw, salt){
+    if (!(window.crypto && crypto.subtle)) throw { code: 'local/nocrypto' };
+    const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+    return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: new TextEncoder().encode(salt), iterations: 120000, hash: 'SHA-256' }, k, 256));
+  }
+  const users = () => S.get('an_users', {});
+  const cur = () => { try { return sessionStorage.getItem('an_sess'); } catch (e) { return null; } };
+  const setCur = e => { try { e ? sessionStorage.setItem('an_sess', e) : sessionStorage.removeItem('an_sess'); } catch (x) {} };
+  const emit = () => listeners.forEach(cb => cb(cur() ? { id: cur(), email: cur() } : null));
+  const nk = () => 'an_notas_' + cur();
+  return {
+    mode: 'local',
+    watch(cb){ listeners.push(cb); cb(cur() ? { id: cur(), email: cur() } : null); },
+    async signUp(e, p){
+      e = e.toLowerCase(); const u = users();
+      if (u[e]) throw { code: 'local/exists' };
+      const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
+      u[e] = { salt, h: await hash(p, salt) }; S.set('an_users', u); setCur(e); emit();
+    },
+    async signIn(e, p){
+      e = e.toLowerCase(); const r = users()[e];
+      if (!r || (await hash(p, r.salt)) !== r.h) throw { code: 'auth/invalid-credential' };
+      setCur(e); emit();
+    },
+    async signOut(){ setCur(null); emit(); },
+    async reset(){ throw { code: 'local/noreset' }; },
+    async changePw(c, n){
+      const u = users(), r = u[cur()];
+      if ((await hash(c, r.salt)) !== r.h) throw { code: 'auth/invalid-credential' };
+      const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
+      u[cur()] = { salt, h: await hash(n, salt) }; S.set('an_users', u);
+    },
+    async list(){ return S.get(nk(), []); },
+    async save(n){
+      const l = S.get(nk(), []), data = { titulo: n.titulo, texto: n.texto, atualizado: Date.now() };
+      if (n.id){ const i = l.findIndex(x => x.id === n.id); if (i > -1) l[i] = Object.assign({ id: n.id }, data); }
+      else l.push(Object.assign({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, data));
+      S.set(nk(), l);
+    },
+    async del(id){ S.set(nk(), S.get(nk(), []).filter(x => x.id !== id)); }
+  };
+}
+
+/* =============== ligação das anotações com a lista de respostas =============== */
+let B = null, user = null, notes = [];
+META[GRUPO] = { ico: '📝', c: '#0d3b66' };
+
+function syncNotes(){
+  /* remove as anotações antigas da lista e recoloca as atuais (mesma estrutura GROUPS/TEXTOS/ITEMS) */
+  const gi = GROUPS.findIndex(g => g.title === GRUPO);
+  if (gi > -1) GROUPS.splice(gi, 1);
+  for (let i = ITEMS.length - 1; i >= 0; i--) if (ITEMS[i].g === GRUPO){ delete byId[ITEMS[i].id]; delete TEXTOS[ITEMS[i].id]; ITEMS.splice(i, 1); }
+  if (user && notes.length){
+    const sorted = notes.slice().sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
+    GROUPS.unshift({ title: GRUPO, items: sorted.map(n => ({ id: 'nota_' + n.id, label: n.titulo })) });
+    sorted.forEach(n => {
+      const it = { id: 'nota_' + n.id, label: n.titulo, g: GRUPO, text: n.texto };
+      it.nq = UI.norm(it.label + ' ' + it.text);
+      TEXTOS[it.id] = n.texto; ITEMS.push(it); byId[it.id] = it;
+    });
+  }
+  if (state.g !== 'all' && !GROUPS.some(g => g.title === state.g)) state.g = 'all';
+  recent = recent.filter(id => byId[id]);
+  renderRecent(); render();
+}
+async function loadNotes(){
+  try { notes = await B.list(); } catch (e) { notes = []; UI.toast(erroMsg(e), 'err'); }
+  syncNotes();
+}
+
+/* =============== tela de login =============== */
+function showMsg(el, kind, text){ el.className = 'au-msg show ' + kind; el.textContent = text; }
+const eyeBtn = '<button type="button" class="au-eye" aria-label="Mostrar/ocultar senha" tabindex="-1">👁</button>';
+document.addEventListener('click', e => {
+  const b = e.target.closest('.au-eye'); if (!b) return;
+  const i = b.parentNode.querySelector('input'); i.type = i.type === 'password' ? 'text' : 'password';
+});
+
+function buildGate(){
+  const g = document.createElement('div');
+  g.className = 'au-gate'; g.id = 'authGate';
+  g.innerHTML = `<form class="au-card" id="auForm" novalidate>
+    <h1>Respostas Rápidas</h1>
+    <p class="au-sub">Entre para acessar suas respostas e anotações.</p>
+    <div class="au-tabs" role="tablist">
+      <button type="button" class="active" data-m="in">Entrar</button>
+      <button type="button" data-m="up">Criar conta</button>
+    </div>
+    <div class="au-msg" id="auMsg" role="alert"></div>
+    <label class="au-f"><span>E-mail (login)</span><input class="au-plain" id="auEmail" type="email" autocomplete="username" required></label>
+    <label class="au-f"><span>Senha</span><div class="au-in"><input id="auPw" type="password" autocomplete="current-password" required>${eyeBtn}</div></label>
+    <div id="auUp" class="hidden">
+      <label class="au-f"><span>Confirmar senha</span><div class="au-in"><input id="auPw2" type="password" autocomplete="new-password">${eyeBtn}</div></label>
+      ${rulesHTML()}
+    </div>
+    <button class="btn au-go" id="auGo" type="submit">Entrar</button>
+    <button class="au-link" id="auForgot" type="button">Esqueci minha senha</button>
+    ${B.mode === 'local' ? '<p class="au-msg warn show" style="margin:14px 0 0">Modo de teste local: banco de dados ainda não vinculado. As contas ficam apenas neste navegador.</p>' : ''}
+  </form>`;
+  document.getElementById('conteudo').insertAdjacentElement('beforebegin', g);
+
+  let mode = 'in';
+  const form = q('#auForm', g), msg = q('#auMsg', g), pw = q('#auPw', g), go = q('#auGo', g);
+  bindRules(pw, q('.au-rules', g));
+  g.querySelectorAll('.au-tabs button').forEach(b => b.onclick = () => {
+    mode = b.dataset.m;
+    g.querySelectorAll('.au-tabs button').forEach(x => x.classList.toggle('active', x === b));
+    q('#auUp', g).classList.toggle('hidden', mode !== 'up');
+    q('#auForgot', g).classList.toggle('hidden', mode === 'up');
+    go.textContent = mode === 'up' ? 'Criar conta' : 'Entrar';
+    pw.autocomplete = mode === 'up' ? 'new-password' : 'current-password';
+    msg.className = 'au-msg';
+  });
+  q('#auForgot', g).onclick = async () => {
+    const email = q('#auEmail', g).value.trim();
+    if (!email) return showMsg(msg, 'err', 'Digite seu e-mail para receber o link de redefinição.');
+    try { await B.reset(email); showMsg(msg, 'ok', 'Se o e-mail estiver cadastrado, enviamos um link para redefinir a senha.'); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+  };
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const email = q('#auEmail', g).value.trim(), p = pw.value;
+    if (!email || !p) return showMsg(msg, 'err', 'Preencha e-mail e senha.');
+    if (mode === 'up'){
+      if (!pwValid(p)) return showMsg(msg, 'err', 'A senha não atende aos requisitos abaixo.');
+      if (p !== q('#auPw2', g).value) return showMsg(msg, 'err', 'As senhas não conferem.');
+    }
+    go.disabled = true;
+    try { await (mode === 'up' ? B.signUp(email, p) : B.signIn(email, p)); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+    go.disabled = false;
+  };
+}
+
+/* =============== painel de controle =============== */
+function openPanel(tab){
+  const m = UI.openModal({
+    title: 'Painel de controle', sub: user.email, size: 'wide',
+    html: `<div class="au-panel-tabs">
+        <button type="button" data-t="notas">📝 Minhas anotações</button>
+        <button type="button" data-t="senha">🔒 Alterar senha</button>
+      </div><div id="auBody"></div>`,
+    foot: '<button class="btn danger" id="auOut" type="button">Sair da conta</button>'
+  });
+  const body = q('#auBody', m.body);
+  const setTab = t => {
+    m.body.querySelectorAll('.au-panel-tabs button').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+    t === 'senha' ? tabSenha(body) : tabNotas(body);
+  };
+  m.body.querySelectorAll('.au-panel-tabs button').forEach(b => b.onclick = () => setTab(b.dataset.t));
+  q('#auOut', m.foot).onclick = async () => { UI.closeModal(); await B.signOut(); };
+  setTab(tab || 'notas');
+}
+
+function tabNotas(box, editing){
+  const n = editing && notes.find(x => x.id === editing);
+  const sorted = notes.slice().sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
+  box.innerHTML = `
+    <div class="au-list">${sorted.length ? sorted.map(x => `
+      <div class="au-item"><div><b>${esc(x.titulo)}</b><small>${esc(x.texto.replace(/\s+/g, ' '))}</small></div>
+        <div class="au-acts"><button class="btn ghost" data-ed="${esc(x.id)}" type="button">✏️ Editar</button>
+        <button class="btn ghost" data-rm="${esc(x.id)}" type="button">🗑</button></div></div>`).join('')
+      : '<div class="au-empty">Você ainda não tem anotações. Crie a primeira abaixo.</div>'}</div>
+    <hr class="au-sep">
+    <div class="au-msg" id="nMsg" role="alert"></div>
+    <label class="au-f"><span>${n ? 'Editar anotação' : 'Nova anotação'} — título</span><input class="au-plain" id="nTit" maxlength="80" value="${n ? esc(n.titulo) : ''}"></label>
+    <label class="au-f"><span>Texto (use *texto* para negrito no WhatsApp)</span><textarea id="nTxt" maxlength="5000">${n ? esc(n.texto) : ''}</textarea></label>
+    <div style="display:flex;gap:8px"><button class="btn" id="nSave" type="button">💾 Salvar</button>
+    ${n ? '<button class="btn ghost" id="nCancel" type="button">Cancelar</button>' : ''}</div>`;
+  box.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => tabNotas(box, b.dataset.ed));
+  box.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => {
+    const x = notes.find(y => y.id === b.dataset.rm);
+    if (!x || !confirm('Excluir a anotação "' + x.titulo + '"?')) return;
+    try { await B.del(x.id); await loadNotes(); tabNotas(box); UI.toast('Anotação excluída'); }
+    catch (e) { UI.toast(erroMsg(e), 'err'); }
+  });
+  const c = q('#nCancel', box); if (c) c.onclick = () => tabNotas(box);
+  q('#nSave', box).onclick = async () => {
+    const titulo = q('#nTit', box).value.trim(), texto = q('#nTxt', box).value.trim(), msg = q('#nMsg', box);
+    if (!titulo || !texto) return showMsg(msg, 'err', 'Preencha o título e o texto.');
+    try { await B.save({ id: n && n.id, titulo, texto }); await loadNotes(); tabNotas(box); UI.toast('Anotação salva'); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+  };
+}
+
+function tabSenha(box){
+  box.innerHTML = `<form id="pwForm" novalidate style="max-width:420px">
+    <div class="au-msg" id="pMsg" role="alert"></div>
+    <input type="text" autocomplete="username" value="${esc(user.email)}" hidden>
+    <label class="au-f"><span>Senha atual</span><div class="au-in"><input id="pCur" type="password" autocomplete="current-password">${eyeBtn}</div></label>
+    <label class="au-f"><span>Nova senha</span><div class="au-in"><input id="pNew" type="password" autocomplete="new-password">${eyeBtn}</div></label>
+    <label class="au-f"><span>Confirmar nova senha</span><div class="au-in"><input id="pNew2" type="password" autocomplete="new-password">${eyeBtn}</div></label>
+    ${rulesHTML()}
+    <button class="btn" type="submit">🔒 Alterar senha</button></form>`;
+  bindRules(q('#pNew', box), q('.au-rules', box));
+  q('#pwForm', box).onsubmit = async ev => {
+    ev.preventDefault();
+    const cur = q('#pCur', box).value, nw = q('#pNew', box).value, msg = q('#pMsg', box);
+    if (!cur) return showMsg(msg, 'err', 'Informe a senha atual.');
+    if (!pwValid(nw)) return showMsg(msg, 'err', 'A nova senha não atende aos requisitos abaixo.');
+    if (nw !== q('#pNew2', box).value) return showMsg(msg, 'err', 'As senhas não conferem.');
+    if (nw === cur) return showMsg(msg, 'err', 'A nova senha deve ser diferente da atual.');
+    try { await B.changePw(cur, nw); ev.target.reset(); [...box.querySelectorAll('.au-rules li')].forEach(li => li.classList.remove('ok')); showMsg(msg, 'ok', 'Senha alterada com sucesso!'); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+  };
+}
+
+/* =============== quando a pessoa entra / sai =============== */
+function onAuth(u){
+  user = u;
+  const gate = document.getElementById('authGate'), old = document.getElementById('userBtn');
+  if (old) old.remove();
+  const tb = q('.toolbar'), nn = q('.nova-nota');
+  if (nn) nn.remove();
+  if (!u){
+    notes = []; syncNotes();
+    document.documentElement.classList.add('auth-lock');
+    if (gate) gate.remove();
+    buildGate();
+    return;
+  }
+  if (gate) gate.remove();
+  document.documentElement.classList.remove('auth-lock');
+  const b = document.createElement('button');
+  b.id = 'userBtn'; b.className = 'user-btn'; b.type = 'button'; b.title = 'Painel de controle';
+  b.innerHTML = '👤 <span>' + esc(u.email) + '</span>';
+  b.onclick = () => openPanel('notas');
+  q('.topbar').insertBefore(b, q('#menuBtn'));
+  const add = document.createElement('button');
+  add.className = 'btn nova-nota'; add.type = 'button'; add.textContent = '＋ Nova anotação';
+  add.onclick = () => openPanel('notas');
+  tb.appendChild(add);
+  loadNotes();
+}
+
+(async function start(){
+  const ready = Object.values(FIREBASE_CONFIG).every(v => v);
+  try { B = ready ? await backendFirebase() : backendLocal(); }
+  catch (e) { B = backendLocal(); UI.toast('Firebase indisponível: usando modo de teste local', 'err'); }
+  B.watch(onAuth);
+})();
+})();
+</script>
+</body>
+</html>

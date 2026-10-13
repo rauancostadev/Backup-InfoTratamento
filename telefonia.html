@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telefonia • Central de Marcação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="telefonia">
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">☎️ Telefonia</span>
+      <h1>Lista Telefônica</h1>
+      <p>Contatos dos setores e unidades. Busque pelo nome do setor ou pelo número, e clique no número para copiá-lo.</p>
+    </div>
+  </div>
+</section>
+
+<main class="wrap" id="conteudo">
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-ico">📇</div><div><b id="kTotal">0</b><span>Contatos</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🏥</div><div><b id="kUnits">0</b><span>Unidades</span></div></div>
+    <div class="kpi"><div class="kpi-ico">🗂️</div><div><b id="kGroups">0</b><span>Áreas</span></div></div>
+    <div class="kpi"><div class="kpi-ico">💬</div><div><b id="kWa">0</b><span>Via WhatsApp</span></div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search"><input type="search" id="busca" placeholder="Pesquisar setor ou telefone..." autocomplete="off" aria-label="Pesquisar setor ou telefone"></div>
+    <select class="select" id="grpSel" aria-label="Filtrar por área"></select>
+    <div class="spacer"></div>
+    <div class="seg" id="seg">
+      <button class="active" data-v="cards">Cartões</button>
+      <button data-v="list">Lista</button>
+    </div>
+    <button class="btn ghost" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+
+  <div class="subbar">
+    <span class="chips-label">Unidade</span>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <p class="result-count" id="count"></p>
+
+  <div id="viewCards"></div>
+  <div id="viewList" class="table-wrap" style="display:none"></div>
+  <div class="page-end"></div>
+
+</main>
+
+<script src="shell.js"></script>
+<script>
+/* ============ DADOS ============
+   n: setor | u: unidade | g: área | nums: telefones | o: observação | wa: número para WhatsApp (opcional)
+   Para incluir um telefone, acrescente uma linha.                                                      */
+const DATA = [
+ {
+  "n": "Pronto-Socorro Convênio",
+  "u": "POL",
+  "g": "Urgência",
+  "nums": [
+   "4009-5667"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Pronto-Socorro SUS",
+  "u": "HLA",
+  "g": "Urgência",
+  "nums": [
+   "4009-5441"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Centro Cirúrgico",
+  "u": "POL",
+  "g": "Internação e Cirurgia",
+  "nums": [
+   "4009-5613"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Cirurgia",
+  "u": "POL",
+  "g": "Internação e Cirurgia",
+  "nums": [
+   "4009-5943"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Cirurgia",
+  "u": "HLA",
+  "g": "Internação e Cirurgia",
+  "nums": [
+   "4009-5721"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Internação",
+  "u": "HLA",
+  "g": "Internação e Cirurgia",
+  "nums": [
+   "4009-5739"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Autorização de Cirurgia Convênio",
+  "u": "POL",
+  "g": "Internação e Cirurgia",
+  "nums": [
+   "4009-5673"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Entrega de Exames",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5590"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Entrega de Exames",
+  "u": "POL",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5684"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Entrega de Exames",
+  "u": "HLA",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5739"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "DNA Center",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-2595"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Ambulatório",
+  "u": "POL",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5576"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Telefonia",
+  "u": "LIGA",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5501",
+   "4009-5401"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Farmácia Central",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5564"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Portaria",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5521"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Sala de Manipulação",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5585"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção",
+  "u": "HOS",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5308",
+   "4009-5301"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Portaria Principal",
+  "u": "HLA",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5444"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Portaria",
+  "u": "POL",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5626"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Laboratório de Patologia",
+  "u": "POL",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5686"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Laboratório de Patologia",
+  "u": "HLA",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5491"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Sala da Tomografia",
+  "u": "POL",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5679"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Ambulatório",
+  "u": "POL",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5631"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Ginecologia",
+  "u": "HLA",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5719"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Secretária Oncologia/Hematologia Convênio",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5560"
+  ],
+  "o": "",
+  "wa": null
+ },
+{
+  "n": "Secretária Oncologia/Hematologia Convênio",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "(84) 99413-9912"
+  ],
+  "o": "Contato via WhatsApp",
+  "wa": null
+ },
+ {
+  "n": "Secretária Oncologia/Hematologia SUS",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5573"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção Medicina Nuclear",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-7436"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção Mamografia",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5559"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Farmácia Satélite",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5570"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Pediatria",
+  "u": "POL",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5688"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Psicologia",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5515"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Fisioterapia",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5726"
+  ],
+  "o": "Central pode agendar",
+  "wa": null
+ },
+ {
+  "n": "Fonoaudiologia",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5451"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Nutrição",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5589"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Patologia",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5588"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Odontologia",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-7428"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Radioterapia Enfermagem",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5545"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Secretária Radioterapia",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5575",
+   "4009-7433"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção Radioterapia",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5522",
+   "4009-5525"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Laboratório de Patologia",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5491"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Nutrição",
+  "u": "HLA",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5405"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Quimioterapia SUS",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "(84) 4009-5583"
+  ],
+  "o": "Contato via WhatsApp",
+  "wa": null
+ },
+ {
+  "n": "Quimioterapia Convênio",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "(84) 98843-3323"
+  ],
+  "o": "Contato via WhatsApp",
+  "wa": null
+ },
+ {
+  "n": "Escola da Oncologia",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5567"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Medicina Nuclear",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "(84) 4009-7442"
+  ],
+  "o": "Contato via WhatsApp",
+  "wa": null
+ },
+ {
+  "n": "Coordenador do Setor de Imagem",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5584"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Secretária do Ambulatório Geral",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "(84) 4009-7438"
+  ],
+  "o": "Contato via WhatsApp",
+  "wa": null
+ },
+ {
+  "n": "Triagem Online",
+  "u": "LIGA",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5416"
+  ],
+  "o": "via site",
+  "wa": null
+ },
+ {
+  "n": "NIR",
+  "u": "LIGA",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "4009-5486",
+   "4009-5479"
+  ],
+  "o": "liga.nir@liga.org.br",
+  "wa": null
+ },
+ {
+  "n": "Central de Guias Convênio",
+  "u": "CECAN",
+  "g": "Atendimento e Secretarias",
+  "nums": [
+   "(84) 4009-5544"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção Ultrassonografia",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5563",
+   "4009-5542"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção Ultrassonografia SUS",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5436"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção Ressonância Magnética",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5593"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Sala Ressonância Magnética",
+  "u": "CECAN",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5586"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Recepção Endoscopia/Colonoscopia",
+  "u": "POL",
+  "g": "Exames e Imagem",
+  "nums": [
+   "4009-5903"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Serviço Social",
+  "u": "POL",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5681"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Serviço Social",
+  "u": "CECAN",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5543"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Cuidados Paliativos",
+  "u": "HLA",
+  "g": "Apoio Multiprofissional",
+  "nums": [
+   "4009-5724"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Financeiro",
+  "u": "CECAN",
+  "g": "Administrativo",
+  "nums": [
+   "4009-5632"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Ouvidoria",
+  "u": "CECAN",
+  "g": "Administrativo",
+  "nums": [
+   "99104-6239"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Arquivo",
+  "u": "POL",
+  "g": "Administrativo",
+  "nums": [
+   "4009-5616"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Arquivo",
+  "u": "HLA",
+  "g": "Administrativo",
+  "nums": [
+   "4009-5440"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Engenharia",
+  "u": "POL",
+  "g": "Administrativo",
+  "nums": [
+   "4009-5630"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Orçamento",
+  "u": "LIGA",
+  "g": "Administrativo",
+  "nums": [
+   "99681-8500"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Faturamento",
+  "u": "LIGA",
+  "g": "Administrativo",
+  "nums": [
+   "4009-5671"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Humanização",
+  "u": "LIGA",
+  "g": "Administrativo",
+  "nums": [
+   "4009-7408",
+   "4009-5579"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Doações",
+  "u": "LIGA",
+  "g": "Administrativo",
+  "nums": [
+   "4009-5578"
+  ],
+  "o": "",
+  "wa": null
+ },
+ {
+  "n": "Clínica BIOS",
+  "u": "LIGA",
+  "g": "Administrativo",
+  "nums": [
+   "3231-1010"
+  ],
+  "o": "",
+  "wa": null
+ }
+];
+
+const GROUPS = [
+  { k:'Urgência',                  ico:'🚑' },
+  { k:'Internação e Cirurgia',     ico:'🛏️' },
+  { k:'Exames e Imagem',           ico:'📋' },
+  { k:'Atendimento e Secretarias', ico:'👩‍💼' },
+  { k:'Apoio Multiprofissional',   ico:'🩺' },
+  { k:'Administrativo',            ico:'🏢' }
+];
+const UNITS = ['LIGA','HLA','POL','CECAN','HOS'];
+
+const $ = id => document.getElementById(id);
+const plural = (n,s,p) => n + ' ' + (n===1 ? s : p);
+const state = { q:'', unit:'all', grp:'all', view:'cards' };
+
+DATA.forEach(d => {
+  d.nq = UI.norm([d.n, d.o, d.u, d.g].join(' '));
+  d.digits = d.nums.map(n => n.replace(/\D/g,'')).join(' ');
+});
+
+function matches(d){
+  const q = UI.norm(state.q.trim());
+  const qd = state.q.replace(/\D/g,'');
+  return (state.unit==='all' || d.u===state.unit) &&
+         (state.grp==='all'  || d.g===state.grp) &&
+         (!q || d.nq.includes(q) || (qd.length >= 3 && d.digits.includes(qd)));
+}
+
+function numBtns(d, small){
+  return d.nums.map(n => `<button class="numbtn ${small?'sm':''}" data-copy="${UI.esc(n)}" type="button" title="Copiar ${UI.esc(n)}">${UI.esc(n)}</button>`).join('');
+}
+function waBtn(d){
+  return d.wa ? `<a class="btn wa-btn" href="https://wa.me/${d.wa}" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>` : '';
+}
+
+function card(d){
+  return `<article class="phone u-${d.u}">
+    <h3>${UI.esc(d.n)}</h3><span class="unit">${d.u}</span>
+    <div class="nums-row">${numBtns(d)}</div>
+    ${d.o ? `<div class="obs">${UI.esc(d.o)}</div>` : ''}
+    ${d.wa ? `<div class="acts">${waBtn(d)}</div>` : ''}
+  </article>`;
+}
+
+function renderChips(){
+  $('chips').innerHTML =
+    `<button class="chip ${state.unit==='all'?'active':''}" data-u="all">Todas <em>${DATA.length}</em></button>` +
+    UNITS.map(u => `<button class="chip u-${u} ${state.unit===u?'active':''}" data-u="${u}"><i></i>${u} <em>${DATA.filter(d=>d.u===u).length}</em></button>`).join('');
+}
+
+function render(){
+  const list = DATA.filter(matches);
+  $('kTotal').textContent = list.length;
+  $('kUnits').textContent = new Set(list.map(d => d.u)).size;
+  $('kGroups').textContent = new Set(list.map(d => d.g)).size;
+  $('kWa').textContent = list.filter(d => d.wa).length;
+  $('count').textContent = plural(list.length,'contato exibido','contatos exibidos');
+
+  const sorted = list.slice().sort((a,b) => a.n.localeCompare(b.n,'pt-BR') || a.u.localeCompare(b.u));
+
+  /* cartões agrupados por área */
+  $('viewCards').innerHTML = GROUPS.map(g => {
+    const items = sorted.filter(d => d.g===g.k);
+    if(!items.length) return '';
+    return `<section class="section">
+      <div class="sec-head"><h2>${g.ico} ${g.k}</h2><span class="count-pill">${items.length}</span></div>
+      <div class="phone-grid" style="margin-bottom:0">${items.map(card).join('')}</div>
+    </section>`;
+  }).join('') || '<div class="nothing"><big>🔎</big>Nenhum contato encontrado</div>';
+
+  /* lista (tabela) */
+  $('viewList').innerHTML = sorted.length ? `<table class="list">
+    <thead><tr><th>Setor</th><th>Telefone</th><th>Unidade</th><th>Observação</th></tr></thead>
+    <tbody>${sorted.map(d => `<tr>
+      <td class="nm">${UI.esc(d.n)}</td>
+      <td>${numBtns(d,true)}</td>
+      <td><span class="unit u-${d.u}" style="position:static;display:inline-block">${d.u}</span></td>
+      <td>${d.o ? UI.esc(d.o) : ''} ${waBtn(d)}</td></tr>`).join('')}</tbody></table>`
+    : '<div class="nothing" style="margin:20px"><big>🔎</big>Nenhum contato encontrado</div>';
+
+  $('viewCards').style.display = state.view==='cards' ? '' : 'none';
+  $('viewList').style.display  = state.view==='list'  ? '' : 'none';
+  document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('active', b.dataset.v===state.view));
+  renderChips();
+}
+
+/* ---------- eventos ---------- */
+$('grpSel').innerHTML = '<option value="all">Todas as áreas</option>' + GROUPS.map(g => `<option value="${g.k}">${g.ico} ${g.k}</option>`).join('');
+$('busca').addEventListener('input', UI.debounce(e => { state.q = e.target.value; render(); }, 100));
+$('grpSel').addEventListener('change', e => { state.grp = e.target.value; render(); });
+$('chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if(!b) return; state.unit = b.dataset.u; render(); });
+$('seg').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; state.view = b.dataset.v; render(); });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-copy]'); if(b) UI.copy(b.dataset.copy, 'Número copiado: ' + b.dataset.copy);
+});
+
+render();
+</script>
+</body>
+</html>

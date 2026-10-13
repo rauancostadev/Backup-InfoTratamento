@@ -1,0 +1,40 @@
+CENTRAL DE MARCAÇÃO - Liga Contra o Câncer
+
+COMO PUBLICAR
+1. Copie TODOS os arquivos desta pasta para o seu repositório (GitHub Pages),
+   substituindo os antigos. Podem manter os nomes iguais.
+2. Os arquivos styles.css e shell.js precisam ficar na MESMA pasta das páginas.
+   O shell.js monta o topo, o menu lateral e o rodapé de todas as páginas.
+
+COMO EDITAR
+- Menu do site (incluir/retirar página): lista PAGES no início do shell.js.
+- Cores e arredondamento de todo o site: bloco :root no início do styles.css.
+- Agenda da Radioterapia: lista SLOTS dentro do radioterapia.html.
+- Médicos por tumor: objeto RAW dentro do oncologia.html.
+- Protocolos de quimioterapia: objeto quimioData dentro do quimioterapia.html.
+- Respostas prontas: GROUPS (botões) e TEXTOS (conteúdo) dentro do anotacoes.html.
+- Telefones: lista DATA dentro do telefonia.html.
+- Exames de ultrassom: lista RAW dentro do ultrassonografia.html.
+
+O styles.css antigo foi substituído por completo; as páginas novas não
+dependem de nenhuma regra dele.
+
+LOGIN, PAINEL DE CONTROLE E ANOTAÇÕES POR USUÁRIO (anotacoes.html)
+A página pede e-mail e senha. Cada pessoa tem suas anotações (aparecem como a
+categoria "Minhas Anotações", junto das respostas prontas) e um painel com
+"Alterar senha" e "Sair". Regra da senha: mínimo 8 caracteres, com letras,
+números e caractere especial.
+
+VINCULAR O BANCO DE DADOS (Firebase, gratuito, funciona no GitHub Pages)
+1. Em https://console.firebase.google.com crie um projeto.
+2. Build > Authentication > Começar > ative "E-mail/senha".
+   (Em Configurações > Política de senha, você pode exigir também no servidor.)
+3. Build > Firestore Database > Criar banco de dados.
+4. Firestore > Regras: cole o conteúdo do arquivo firestore.rules e publique.
+5. Configurações do projeto > Seus aplicativos > </> (Web): copie apiKey,
+   authDomain, projectId e appId e cole em FIREBASE_CONFIG, no fim do
+   anotacoes.html.
+6. Authentication > Configurações > Domínios autorizados: adicione o domínio
+   do seu GitHub Pages (seuusuario.github.io).
+Sem FIREBASE_CONFIG preenchido a página funciona em MODO DE TESTE LOCAL
+(contas só no navegador, apenas para testar).
