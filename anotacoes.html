@@ -763,6 +763,43 @@ async function loadNotes(){
   syncNotes();
 }
 
+/* ---------- excluir / duplicar (usadas no painel e nos cards) ---------- */
+async function removerNota(id){
+  const x = notes.find(y => y.id === id);
+  if (!x || !confirm('Excluir a anotação "' + x.titulo + '"?')) return false;
+  try { await B.del(x.id); await loadNotes(); UI.toast('Anotação excluída'); return true; }
+  catch (e) { UI.toast(erroMsg(e), 'err'); return false; }
+}
+async function duplicarNota(id){
+  const x = notes.find(y => y.id === id); if (!x) return false;
+  const sufixo = ' (cópia)';
+  const titulo = (x.titulo.length + sufixo.length > 80 ? x.titulo.slice(0, 80 - sufixo.length) : x.titulo) + sufixo;
+  try { await B.save({ titulo, texto: x.texto }); await loadNotes(); UI.toast('Anotação duplicada'); return true; }
+  catch (e) { UI.toast(erroMsg(e), 'err'); return false; }
+}
+
+/* ---------- botões Editar / Duplicar / Excluir nos cards das anotações ---------- */
+const renderOriginal = render;
+render = function(){
+  renderOriginal();
+  document.querySelectorAll('.tpl[data-copy^="nota_"]').forEach(card => {
+    const id = card.dataset.copy.slice(5), acts = q('.acts', card);
+    if (!acts || q('[data-nedit]', acts)) return;
+    acts.insertAdjacentHTML('beforeend',
+      `<button class="btn ghost" data-nedit="${esc(id)}" type="button" title="Editar">✏️</button>
+       <button class="btn ghost" data-ndup="${esc(id)}" type="button" title="Duplicar">⧉</button>
+       <button class="btn ghost" data-ndel="${esc(id)}" type="button" title="Excluir">🗑</button>`);
+  });
+};
+/* captura antes do clique de "copiar" do card */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-nedit],[data-ndup],[data-ndel]'); if (!b) return;
+  e.stopPropagation();
+  if (b.dataset.nedit) openPanel('notas', b.dataset.nedit);
+  else if (b.dataset.ndup) duplicarNota(b.dataset.ndup);
+  else removerNota(b.dataset.ndel);
+}, true);
+
 /* =============== tela de login =============== */
 function showMsg(el, kind, text){ el.className = 'au-msg show ' + kind; el.textContent = text; }
 const eyeBtn = '<button type="button" class="au-eye" aria-label="Mostrar/ocultar senha" tabindex="-1">👁</button>';
@@ -828,7 +865,7 @@ function buildGate(){
 }
 
 /* =============== painel de controle =============== */
-function openPanel(tab){
+function openPanel(tab, editId){
   const m = UI.openModal({
     title: 'Painel de controle', sub: user.email, size: 'wide',
     html: `<div class="au-panel-tabs">
@@ -840,7 +877,7 @@ function openPanel(tab){
   const body = q('#auBody', m.body);
   const setTab = t => {
     m.body.querySelectorAll('.au-panel-tabs button').forEach(b => b.classList.toggle('active', b.dataset.t === t));
-    t === 'senha' ? tabSenha(body) : tabNotas(body);
+    t === 'senha' ? tabSenha(body) : tabNotas(body, t === tab ? editId : null);
   };
   m.body.querySelectorAll('.au-panel-tabs button').forEach(b => b.onclick = () => setTab(b.dataset.t));
   q('#auOut', m.foot).onclick = async () => { UI.closeModal(); await B.signOut(); };
@@ -854,7 +891,8 @@ function tabNotas(box, editing){
     <div class="au-list">${sorted.length ? sorted.map(x => `
       <div class="au-item"><div><b>${esc(x.titulo)}</b><small>${esc(x.texto.replace(/\s+/g, ' '))}</small></div>
         <div class="au-acts"><button class="btn ghost" data-ed="${esc(x.id)}" type="button">✏️ Editar</button>
-        <button class="btn ghost" data-rm="${esc(x.id)}" type="button">🗑</button></div></div>`).join('')
+        <button class="btn ghost" data-dup="${esc(x.id)}" type="button">⧉ Duplicar</button>
+        <button class="btn ghost" data-rm="${esc(x.id)}" type="button">🗑 Excluir</button></div></div>`).join('')
       : '<div class="au-empty">Você ainda não tem anotações. Crie a primeira abaixo.</div>'}</div>
     <hr class="au-sep">
     <div class="au-msg" id="nMsg" role="alert"></div>
@@ -864,11 +902,12 @@ function tabNotas(box, editing){
     ${n ? '<button class="btn ghost" id="nCancel" type="button">Cancelar</button>' : ''}</div>`;
   box.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => tabNotas(box, b.dataset.ed));
   box.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => {
-    const x = notes.find(y => y.id === b.dataset.rm);
-    if (!x || !confirm('Excluir a anotação "' + x.titulo + '"?')) return;
-    try { await B.del(x.id); await loadNotes(); tabNotas(box); UI.toast('Anotação excluída'); }
-    catch (e) { UI.toast(erroMsg(e), 'err'); }
+    if (await removerNota(b.dataset.rm)) tabNotas(box);
   });
+  box.querySelectorAll('[data-dup]').forEach(b => b.onclick = async () => {
+    if (await duplicarNota(b.dataset.dup)) tabNotas(box);
+  });
+  if (n) { const f = q('#nTit', box); f.scrollIntoView({ block: 'center' }); f.focus(); }
   const c = q('#nCancel', box); if (c) c.onclick = () => tabNotas(box);
   q('#nSave', box).onclick = async () => {
     const titulo = q('#nTit', box).value.trim(), texto = q('#nTxt', box).value.trim(), msg = q('#nMsg', box);
@@ -931,7 +970,14 @@ function onAuth(u){
 (async function start(){
   const ready = Object.values(FIREBASE_CONFIG).every(v => v);
   try { B = ready ? await backendFirebase() : backendLocal(); }
-  catch (e) { B = backendLocal(); UI.toast('Firebase indisponível: usando modo de teste local', 'err'); }
+  catch (e) {
+    /* com o banco configurado, nunca cai para o modo local: mostra o erro e mantém a página bloqueada */
+    console.error(e);
+    const g = document.createElement('div'); g.className = 'au-gate';
+    g.innerHTML = '<div class="au-card"><h1>Sem conexão com o banco</h1><p class="au-msg err show">Não foi possível conectar ao banco de dados (Firebase). Verifique sua internet e recarregue a página.</p><button class="btn au-go" type="button" onclick="location.reload()">Recarregar</button></div>';
+    document.getElementById('conteudo').insertAdjacentElement('beforebegin', g);
+    return;
+  }
   B.watch(onAuth);
 })();
 })();
