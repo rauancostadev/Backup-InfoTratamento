@@ -1,13 +1,84 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Cada pessoa só lê e escreve as PRÓPRIAS anotações.
-    match /users/{uid}/notas/{nota} {
-      allow read, delete: if request.auth != null && request.auth.uid == uid;
-      allow create, update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['titulo', 'texto', 'atualizado'])
-        && request.resource.data.titulo is string && request.resource.data.titulo.size() <= 80
-        && request.resource.data.texto is string && request.resource.data.texto.size() <= 5000;
+
+    // ---------- funções auxiliares ----------
+    function logado()      { return request.auth != null; }
+    function docUsuario(uid) { return /databases/$(database)/documents/usuarios/$(uid); }
+    function temPerfil()   { return exists(docUsuario(request.auth.uid)); }
+    function perfil()      { return get(docUsuario(request.auth.uid)).data; }
+    function ativo()       { return logado() && temPerfil() && perfil().ativo == true; }
+    function gestor()      { return ativo() && perfil().papel == 'gestor'; }
+    function temGeral()    { return exists(/databases/$(database)/documents/config/geral); }
+    function geral()       { return get(/databases/$(database)/documents/config/geral).data; }
+    function emailAtual()  { return request.auth.token.email.lower(); }
+
+    // ---------- configuração geral (só guarda se o cadastro é aberto) ----------
+    match /config/geral {
+      allow read: if true;
+      // a primeira conta do sistema cria a configuração e vira gestor (no mesmo lote)
+      allow create: if logado() && !temGeral()
+        && request.resource.data.keys().hasOnly(['cadastroAberto', 'criado'])
+        && getAfter(docUsuario(request.auth.uid)).data.papel == 'gestor';
+      allow update: if gestor()
+        && request.resource.data.keys().hasOnly(['cadastroAberto', 'criado']);
+    }
+
+    // ---------- perfil de cada usuário ----------
+    match /usuarios/{uid} {
+      allow read: if logado() && (request.auth.uid == uid || gestor());
+
+      // cria o próprio perfil: gestor (só se for a primeira conta) ou operador (se autorizado / cadastro aberto)
+      allow create: if logado() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['email','papel','ativo','nome','tema','favoritos','usos','ordem','criado'])
+        && request.resource.data.email == emailAtual()
+        && request.resource.data.ativo == true
+        && (
+             (request.resource.data.papel == 'gestor' && !temGeral())
+          || (request.resource.data.papel == 'operador' && temGeral()
+              && (geral().cadastroAberto == true
+                  || exists(/databases/$(database)/documents/autorizados/$(emailAtual()))))
+        );
+
+      allow update:
+        // o próprio usuário: só preferências (nunca papel/ativo)
+        if (logado() && request.auth.uid == uid && ativo()
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['nome','tema','favoritos','usos','ordem']))
+        // o gestor: só papel/ativo de OUTRAS pessoas
+        || (gestor() && request.auth.uid != uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['papel','ativo']));
+
+      // excluir a própria conta (gestor não pode, para o sistema nunca ficar sem gestor)
+      allow delete: if logado() && request.auth.uid == uid && ativo() && perfil().papel != 'gestor';
+    }
+
+    // ---------- anotações pessoais ----------
+    match /usuarios/{uid}/notas/{nota} {
+      allow read, delete: if logado() && request.auth.uid == uid && ativo();
+      allow create, update: if logado() && request.auth.uid == uid && ativo()
+        && request.resource.data.keys().hasOnly(['titulo', 'texto', 'categoria', 'atualizado'])
+        && request.resource.data.titulo is string && request.resource.data.titulo.size() > 0 && request.resource.data.titulo.size() <= 80
+        && request.resource.data.texto is string && request.resource.data.texto.size() > 0 && request.resource.data.texto.size() <= 5000
+        && request.resource.data.categoria is string && request.resource.data.categoria.size() <= 40;
+    }
+
+    // ---------- respostas compartilhadas: todos leem, só o gestor escreve ----------
+    match /respostas/{id} {
+      allow read: if ativo();
+      allow create, update: if gestor()
+        && request.resource.data.keys().hasOnly(['grupo','titulo','texto','oculta','atualizado','por'])
+        && request.resource.data.grupo is string && request.resource.data.grupo.size() > 0 && request.resource.data.grupo.size() <= 60
+        && request.resource.data.titulo is string && request.resource.data.titulo.size() > 0 && request.resource.data.titulo.size() <= 80
+        && request.resource.data.texto is string && request.resource.data.texto.size() > 0 && request.resource.data.texto.size() <= 5000
+        && request.resource.data.oculta is bool;
+      allow delete: if gestor();
+    }
+
+    // ---------- e-mails autorizados a criar conta (só o gestor) ----------
+    match /autorizados/{email} {
+      allow read, delete: if gestor();
+      allow create: if gestor() && request.resource.data.keys().hasOnly(['por', 'criado']);
     }
   }
 }
