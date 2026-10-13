@@ -58,6 +58,7 @@ html.auth-lock .hero, html.auth-lock #conteudo{display:none}
 .btn.danger{background:var(--vermelho)}
 .btn.danger:hover{background:#8e1c1c}
 .nova-nota{margin-left:auto}
+.painel-btn{margin-left:0}
 </style>
 </head>
 <body data-page="anotacoes">
@@ -576,9 +577,8 @@ function viewItem(id){
   const m = UI.openModal({
     title: it.label, sub: it.g,
     html: `<div class="wa-bg"><div class="wa">${waHTML(it.text)}</div></div>`,
-    foot: '<a class="btn wa-btn" id="mWa" target="_blank" rel="noopener noreferrer">WhatsApp</a><button class="btn" id="mCopy" type="button">📋 Copiar</button>'
+    foot: '<button class="btn" id="mCopy" type="button">📋 Copiar</button>'
   });
-  m.foot.querySelector('#mWa').href = 'https://wa.me/?text=' + encodeURIComponent(it.text);
   m.foot.querySelector('#mCopy').onclick = () => { copyItem(id); UI.closeModal(); };
 }
 
@@ -944,8 +944,8 @@ function onAuth(u){
   user = u;
   const gate = document.getElementById('authGate'), old = document.getElementById('userBtn');
   if (old) old.remove();
-  const tb = q('.toolbar'), nn = q('.nova-nota');
-  if (nn) nn.remove();
+  const tb = q('.toolbar');
+  document.querySelectorAll('.nova-nota,.painel-btn').forEach(x => x.remove());
   if (!u){
     notes = []; syncNotes();
     document.documentElement.classList.add('auth-lock');
@@ -963,7 +963,10 @@ function onAuth(u){
   const add = document.createElement('button');
   add.className = 'btn nova-nota'; add.type = 'button'; add.textContent = '＋ Nova anotação';
   add.onclick = () => openPanel('notas');
-  tb.appendChild(add);
+  const painel = document.createElement('button');
+  painel.className = 'btn ghost painel-btn'; painel.type = 'button'; painel.textContent = '⚙️ Painel de controle';
+  painel.onclick = () => openPanel('notas');
+  tb.appendChild(add); tb.appendChild(painel);
   loadNotes();
 }
 
