@@ -248,7 +248,7 @@ button.tag-pill:hover{border-color:var(--c)}
 .cat-sus-inj{--c:var(--azul);--bg-c:var(--sus-bg)}
 .cat-hemato{--c:var(--vermelho);--bg-c:#ffebee}
 
-/* ===================== RESPOSTAS RÁPIDAS ===================== */
+/* ===================== ANOTAÇÕES ===================== */
 .recent{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 22px;padding:12px 16px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
 .recent .chip{padding:6px 12px;font-size:.8rem}
 .tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
@@ -356,3 +356,126 @@ table.list .ph{font-weight:800;color:var(--navy);font-variant-numeric:tabular-nu
 .numbtn.sm{font-size:.9rem;padding:3px 9px;margin:2px 4px 2px 0}
 .chip.u-LIGA,.chip.u-HLA,.chip.u-POL,.chip.u-CECAN,.chip.u-HOS{--bg-c:transparent}
 table.list .btn{padding:4px 10px;font-size:.75rem;margin-left:6px}
+
+/* ============================ BOTÃO DE TEMA ============================ */
+.tema-btn{margin-left:auto;margin-right:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:1rem;line-height:1;transition:.2s}
+.tema-btn:hover{border-color:var(--azul)}
+
+/* ============================ TEMA ESCURO (todas as páginas) ============================
+   Ativado por <html data-tema="dark">, definido pelo botão do topo e guardado no navegador. */
+@media screen{
+html[data-tema="dark"]{--bg:#0f172a;--card:#1e293b;--text:#e2e8f0;--muted:#94a3b8;--line:#334155;
+  --sus-bg:#1e3a5f;--conv-bg:#4a2c10;--res-bg:#3b1f4d;--ok-bg:#16351b;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);--shadow-lg:0 14px 34px rgba(0,0,0,.5);color-scheme:dark}
+html[data-tema="dark"] .topbar,
+html[data-tema="dark"] .side-menu,
+html[data-tema="dark"] .recent,
+html[data-tema="dark"] .tpl,
+html[data-tema="dark"] .modal-box,
+html[data-tema="dark"] .nothing,
+html[data-tema="dark"] .shortcut,
+html[data-tema="dark"] .cell,
+html[data-tema="dark"] .row-head,
+html[data-tema="dark"] .mcard,
+html[data-tema="dark"] .tumor,
+html[data-tema="dark"] .net-wrap,
+html[data-tema="dark"] .proto,
+html[data-tema="dark"] .phone,
+html[data-tema="dark"] .table-wrap,
+html[data-tema="dark"] .us-card,
+html[data-tema="dark"] .num,
+html[data-tema="dark"] .kpi,
+html[data-tema="dark"] .day-tabs button,
+html[data-tema="dark"] .seg button.active,
+html[data-tema="dark"] kbd,
+html[data-tema="dark"] .skip,
+html[data-tema="dark"] .au-card,
+html[data-tema="dark"] .au-item,
+html[data-tema="dark"] .tema-btn{background:#1e293b}
+html[data-tema="dark"] .search input,
+html[data-tema="dark"] .select,
+html[data-tema="dark"] .field,
+html[data-tema="dark"] .chip,
+html[data-tema="dark"] .btn.ghost,
+html[data-tema="dark"] .med-count,
+html[data-tema="dark"] .user-btn,
+html[data-tema="dark"] .au-plain,
+html[data-tema="dark"] .au-in input,
+html[data-tema="dark"] .au-f textarea,
+html[data-tema="dark"] .au-panel-tabs button,
+html[data-tema="dark"] input[type=file],
+html[data-tema="dark"] .toolbar .select{background:#0f172a;color:#e2e8f0;border-color:#334155}
+html[data-tema="dark"] .modal-foot,
+html[data-tema="dark"] .net-info,
+html[data-tema="dark"] table.list th{background:#172033}
+html[data-tema="dark"] .toolbar{background:rgba(15,23,42,.92)}
+html[data-tema="dark"] .seg{background:#0b1220}
+html[data-tema="dark"] .btn.ghost:hover{background:#1e293b;color:#fff;border-color:#475569}
+html[data-tema="dark"] .chip.active,
+html[data-tema="dark"] .au-panel-tabs button.active{background:#2563eb;border-color:#2563eb;color:#fff}
+html[data-tema="dark"] .chip em,
+html[data-tema="dark"] .uso-pill,
+html[data-tema="dark"] .au-tags span,
+html[data-tema="dark"] .au-bar div,
+html[data-tema="dark"] .au-tabs,
+html[data-tema="dark"] .au-sub code{background:#0f172a;color:#e2e8f0}
+html[data-tema="dark"] .chip.active em{background:rgba(255,255,255,.2);color:#fff}
+html[data-tema="dark"] .au-tabs button.active{background:#334155;color:#fff}
+html[data-tema="dark"] .cell.today{border-color:#7c4a1d;background:linear-gradient(#3a2a1a,#1e293b)}
+html[data-tema="dark"] .tumor-head{background:linear-gradient(90deg,color-mix(in srgb,var(--c) 28%,#1e293b),#1e293b 80%)}
+html[data-tema="dark"] table.list td,
+html[data-tema="dark"] .prof-item{border-bottom-color:#334155}
+html[data-tema="dark"] table.list tr:hover td{background:#172033}
+html[data-tema="dark"] .prof-item:hover{background:#0f172a}
+html[data-tema="dark"] .side-menu a{color:#e2e8f0}
+html[data-tema="dark"] .side-menu a:hover,
+html[data-tema="dark"] .side-menu a.current{background:#0f172a}
+html[data-tema="dark"] .tpl h3,
+html[data-tema="dark"] .sec-head h2,
+html[data-tema="dark"] .shortcut h2,
+html[data-tema="dark"] .shortcut .go,
+html[data-tema="dark"] .tumor-head h3,
+html[data-tema="dark"] .num-big,
+html[data-tema="dark"] table.list .ph,
+html[data-tema="dark"] .net-info b,
+html[data-tema="dark"] .row-head,
+html[data-tema="dark"] kbd,
+html[data-tema="dark"] .numbtn,
+html[data-tema="dark"] .cell .shift-tag,
+html[data-tema="dark"] .kpi b,
+html[data-tema="dark"] .modal-head h2,
+html[data-tema="dark"] .au-card h1,
+html[data-tema="dark"] .au-item b,
+html[data-tema="dark"] .au-bar b{color:#e2e8f0}
+html[data-tema="dark"] .brand-title{color:#7db3ee}
+html[data-tema="dark"] .num b,
+html[data-tema="dark"] .doc .v b{color:color-mix(in srgb,var(--c) 55%,#fff)}
+html[data-tema="dark"] .pill,
+html[data-tema="dark"] .tag-pill,
+html[data-tema="dark"] .unit,
+html[data-tema="dark"] .cat-tag,
+html[data-tema="dark"] .doc .tag,
+html[data-tema="dark"] .count-pill{background:color-mix(in srgb,var(--c,var(--azul)) 26%,transparent);color:color-mix(in srgb,var(--c,var(--azul)) 50%,#fff)}
+html[data-tema="dark"] .s-ico{background:color-mix(in srgb,var(--c,var(--navy)) 24%,transparent)}
+html[data-tema="dark"] .doc:hover .tag{background:rgba(255,255,255,.12)}
+html[data-tema="dark"] .proto .ret{color:#86efac}
+html[data-tema="dark"] .flag{background:#3a2a14;color:#fdba74}
+html[data-tema="dark"] .flag.sc{background:#16314f;color:#93c5fd}
+html[data-tema="dark"] .flag.leito{background:#4a1d33;color:#f9a8d4}
+html[data-tema="dark"] .flag.unicat{background:#2e2250;color:#c4b5fd}
+html[data-tema="dark"] .flag.judic{background:#4a1d1d;color:#fca5a5}
+html[data-tema="dark"] .flag.dia{background:#4a3a0c;color:#fde68a}
+html[data-tema="dark"] .flag.poltrona{background:#16351b;color:#86efac}
+html[data-tema="dark"] .cell .empty{color:#475569}
+html[data-tema="dark"] .wa-bg{background:#0b141a}
+html[data-tema="dark"] .wa{background:#005c4b;color:#e9edef}
+html[data-tema="dark"] .modal-x{background:#334155;color:#e2e8f0}
+html[data-tema="dark"] .modal-x:hover{background:#475569}
+html[data-tema="dark"] .au-msg.err{background:#4a1d1d;color:#fca5a5}
+html[data-tema="dark"] .au-msg.ok{background:#16351b;color:#86efac}
+html[data-tema="dark"] .au-msg.warn{background:#4a3a0c;color:#fde68a}
+html[data-tema="dark"] .au-rules li::before{color:#475569}
+html[data-tema="dark"] .au-rules li.ok{color:#86efac}
+html[data-tema="dark"] .count-pill[style*="e8f5e9"]{background:#16351b!important}
+html[data-tema="dark"] .seg button.active{background:#334155;color:#fff}
+}

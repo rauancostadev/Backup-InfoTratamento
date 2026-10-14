@@ -3,38 +3,48 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ---------- funções auxiliares ----------
-    function logado()      { return request.auth != null; }
+    function logado()        { return request.auth != null; }
     function docUsuario(uid) { return /databases/$(database)/documents/usuarios/$(uid); }
-    function temPerfil()   { return exists(docUsuario(request.auth.uid)); }
-    function perfil()      { return get(docUsuario(request.auth.uid)).data; }
-    function ativo()       { return logado() && temPerfil() && perfil().ativo == true; }
-    function gestor()      { return ativo() && perfil().papel == 'gestor'; }
-    function temGeral()    { return exists(/databases/$(database)/documents/config/geral); }
-    function geral()       { return get(/databases/$(database)/documents/config/geral).data; }
-    function emailAtual()  { return request.auth.token.email.lower(); }
+    function temPerfil()     { return exists(docUsuario(request.auth.uid)); }
+    function perfil()        { return get(docUsuario(request.auth.uid)).data; }
+    function ativo()         { return logado() && temPerfil() && perfil().ativo == true; }
+    // Administrador = criador do sistema. Gestor e Administrador têm os mesmos acessos de gestão.
+    function admin()         { return ativo() && perfil().papel == 'admin'; }
+    function gestao()        { return ativo() && perfil().papel in ['gestor', 'admin']; }
+    function temGeral()      { return exists(/databases/$(database)/documents/config/geral); }
+    function geral()         { return get(/databases/$(database)/documents/config/geral).data; }
+    function criador()       { return geral().get('criadorUid', ''); }
+    function emailAtual()    { return request.auth.token.email.lower(); }
 
-    // ---------- configuração geral (só guarda se o cadastro é aberto) ----------
+    // ---------- configuração geral (só guarda se o cadastro é aberto e quem é o criador) ----------
     match /config/geral {
       allow read: if true;
-      // a primeira conta do sistema cria a configuração e vira gestor (no mesmo lote)
+      // a primeira conta do sistema cria a configuração e vira administrador (no mesmo lote)
       allow create: if logado() && !temGeral()
-        && request.resource.data.keys().hasOnly(['cadastroAberto', 'criado'])
-        && getAfter(docUsuario(request.auth.uid)).data.papel == 'gestor';
-      allow update: if gestor()
-        && request.resource.data.keys().hasOnly(['cadastroAberto', 'criado']);
+        && request.resource.data.keys().hasOnly(['cadastroAberto', 'criado', 'criadorUid'])
+        && request.resource.data.criadorUid == request.auth.uid
+        && getAfter(docUsuario(request.auth.uid)).data.papel == 'admin';
+      // só dá para mudar "cadastroAberto" (o criador nunca muda)
+      allow update: if gestao()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cadastroAberto']);
     }
 
     // ---------- perfil de cada usuário ----------
     match /usuarios/{uid} {
-      allow read: if logado() && (request.auth.uid == uid || gestor());
+      // o gestor só enxerga operadores e gestores (administradores ficam invisíveis para ele)
+      allow read: if logado() && (
+           request.auth.uid == uid
+        || admin()
+        || (gestao() && resource.data.papel in ['operador', 'gestor'])
+      );
 
-      // cria o próprio perfil: gestor (só se for a primeira conta) ou operador (se autorizado / cadastro aberto)
+      // cria o próprio perfil: administrador (só a primeira conta) ou operador (se autorizado / cadastro aberto)
       allow create: if logado() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['email','papel','ativo','nome','tema','favoritos','usos','ordem','criado'])
         && request.resource.data.email == emailAtual()
         && request.resource.data.ativo == true
         && (
-             (request.resource.data.papel == 'gestor' && !temGeral())
+             (request.resource.data.papel == 'admin' && !temGeral())
           || (request.resource.data.papel == 'operador' && temGeral()
               && (geral().cadastroAberto == true
                   || exists(/databases/$(database)/documents/autorizados/$(emailAtual()))))
@@ -45,12 +55,15 @@ service cloud.firestore {
         if (logado() && request.auth.uid == uid && ativo()
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['nome','tema','favoritos','usos','ordem']))
-        // o gestor: só papel/ativo de OUTRAS pessoas
-        || (gestor() && request.auth.uid != uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['papel','ativo']));
+        // gestão: só papel/ativo de OUTRAS pessoas, nunca do criador.
+        // O gestor não mexe em administradores e não consegue conceder o perfil de administrador.
+        || (gestao() && request.auth.uid != uid && uid != criador()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['papel','ativo'])
+            && (admin() || (resource.data.papel in ['operador', 'gestor']
+                            && request.resource.data.papel in ['operador', 'gestor'])));
 
-      // excluir a própria conta (gestor não pode, para o sistema nunca ficar sem gestor)
-      allow delete: if logado() && request.auth.uid == uid && ativo() && perfil().papel != 'gestor';
+      // excluir a própria conta (gestor e administrador não podem, para o sistema nunca ficar sem gestão)
+      allow delete: if logado() && request.auth.uid == uid && ativo() && !(perfil().papel in ['gestor', 'admin']);
     }
 
     // ---------- anotações pessoais ----------
@@ -63,22 +76,22 @@ service cloud.firestore {
         && request.resource.data.categoria is string && request.resource.data.categoria.size() <= 40;
     }
 
-    // ---------- respostas compartilhadas: todos leem, só o gestor escreve ----------
+    // ---------- respostas compartilhadas: todos leem, só a gestão escreve ----------
     match /respostas/{id} {
       allow read: if ativo();
-      allow create, update: if gestor()
+      allow create, update: if gestao()
         && request.resource.data.keys().hasOnly(['grupo','titulo','texto','oculta','atualizado','por'])
         && request.resource.data.grupo is string && request.resource.data.grupo.size() > 0 && request.resource.data.grupo.size() <= 60
         && request.resource.data.titulo is string && request.resource.data.titulo.size() > 0 && request.resource.data.titulo.size() <= 80
         && request.resource.data.texto is string && request.resource.data.texto.size() > 0 && request.resource.data.texto.size() <= 5000
         && request.resource.data.oculta is bool;
-      allow delete: if gestor();
+      allow delete: if gestao();
     }
 
-    // ---------- e-mails autorizados a criar conta (só o gestor) ----------
+    // ---------- e-mails autorizados a criar conta (só a gestão) ----------
     match /autorizados/{email} {
-      allow read, delete: if gestor();
-      allow create: if gestor() && request.resource.data.keys().hasOnly(['por', 'criado']);
+      allow read, delete: if gestao();
+      allow create: if gestao() && request.resource.data.keys().hasOnly(['por', 'criado']);
     }
   }
 }

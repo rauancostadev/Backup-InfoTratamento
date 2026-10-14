@@ -12,7 +12,7 @@
     { id: 'quimioterapia',    href: 'quimioterapia.html',    label: 'Quimioterapia',     ico: '💉' },
     { id: 'radioterapia',     href: 'radioterapia.html',     label: 'Radioterapia',      ico: '☢️' },
     { id: 'ultrassonografia', href: 'ultrassonografia.html', label: 'Ultrassonografia',  ico: '📺' },
-    { id: 'anotacoes',        href: 'anotacoes.html',        label: 'Respostas Rápidas', ico: '📋' },
+    { id: 'anotacoes',        href: 'anotacoes.html',        label: 'Anotações', ico: '📋' },
     { id: 'telefonia',        href: 'telefonia.html',        label: 'Telefonia',         ico: '☎️' }
   ];
 
@@ -38,6 +38,7 @@
     '<header class="topbar">' +
       '<a href="index.html" title="Início"><img src="' + LOGO + '" alt="Liga Contra o Câncer"></a>' +
       '<div class="brand-title">Central de Marcação</div>' +
+      '<button class="tema-btn" id="temaBtn" type="button" aria-label="Alternar tema claro/escuro"></button>' +
       '<button class="menu-btn" id="menuBtn" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="sideMenu">☰ Menu</button>' +
     '</header>' +
     '<nav class="side-menu" id="sideMenu" aria-label="Menu principal">' + links + '</nav>' +
@@ -90,6 +91,23 @@
     var h = new Date().getHours();
     return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   };
+
+  /* ---------- tema claro / escuro (vale para todas as páginas e fica salvo neste navegador) ---------- */
+  UI.tema = {
+    onChange: null,
+    get: function () { return document.documentElement.getAttribute('data-tema') === 'dark' ? 'dark' : 'light'; },
+    set: function (t, silent) {
+      var dark = t === 'dark';
+      if (dark) document.documentElement.setAttribute('data-tema', 'dark'); else document.documentElement.removeAttribute('data-tema');
+      try { localStorage.setItem('an_tema', dark ? 'dark' : 'light'); } catch (e) {}
+      var b = document.getElementById('temaBtn');
+      if (b) { b.textContent = dark ? '☀️' : '🌙'; b.title = dark ? 'Mudar para tema claro' : 'Mudar para tema escuro'; }
+      if (!silent && typeof UI.tema.onChange === 'function') UI.tema.onChange(dark ? 'dark' : 'light');
+    },
+    toggle: function () { UI.tema.set(UI.tema.get() === 'dark' ? 'light' : 'dark'); }
+  };
+  document.getElementById('temaBtn').addEventListener('click', UI.tema.toggle);
+  UI.tema.set(UI.tema.get(), true);
 
   UI.store = {
     get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },

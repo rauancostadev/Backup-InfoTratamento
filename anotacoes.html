@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Respostas Rápidas • Central de Marcação</title>
+<title>Anotações • Central de Marcação</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -59,8 +59,6 @@ html.auth-lock .hero, html.auth-lock #conteudo{display:none}
 .btn.danger:hover{background:#8e1c1c}
 .nova-nota{margin-left:auto}
 .painel-btn{margin-left:0}
-.tema-btn{margin-left:auto;margin-right:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:1rem;line-height:1;transition:.2s}
-.tema-btn:hover{border-color:var(--azul)}
 .uso-pill{font-size:.7rem;font-weight:800;color:var(--muted);background:#eef2f7;padding:2px 8px;border-radius:999px;white-space:nowrap;align-self:flex-start}
 .btn.fav.on{color:#f59e0b;border-color:#f59e0b}
 .au-item{flex-wrap:wrap}
@@ -81,30 +79,6 @@ html.auth-lock .hero, html.auth-lock #conteudo{display:none}
 .btn[disabled]{opacity:.45;pointer-events:none}
 .au-sub code{background:#eef2f7;padding:1px 5px;border-radius:5px}
 
-/* ============ TEMA ESCURO ============ */
-html[data-tema="dark"]{--bg:#0f172a;--card:#1e293b;--text:#e2e8f0;--muted:#94a3b8;--line:#334155;--navy:#93c5fd;--azul:#7db3ee;--sus-bg:#1e3a5f;--conv-bg:#4a2c10;--res-bg:#3b1f4d;--ok-bg:#16351b;color-scheme:dark}
-html[data-tema="dark"] .topbar,html[data-tema="dark"] .side-menu,html[data-tema="dark"] .recent,html[data-tema="dark"] .tpl,
-html[data-tema="dark"] .modal-box,html[data-tema="dark"] .nothing,html[data-tema="dark"] .au-card,html[data-tema="dark"] .au-item,
-html[data-tema="dark"] .kpi,html[data-tema="dark"] .shortcut{background:#1e293b}
-html[data-tema="dark"] .modal-foot{background:#172033}
-html[data-tema="dark"] .toolbar{background:rgba(15,23,42,.92)}
-html[data-tema="dark"] .search input,html[data-tema="dark"] .chip,html[data-tema="dark"] .btn.ghost,html[data-tema="dark"] .select,
-html[data-tema="dark"] .user-btn,html[data-tema="dark"] .tema-btn,html[data-tema="dark"] .au-plain,html[data-tema="dark"] .au-in input,
-html[data-tema="dark"] .au-f textarea,html[data-tema="dark"] .au-panel-tabs button,html[data-tema="dark"] input[type=file]{background:#0f172a;color:var(--text);border-color:#334155}
-html[data-tema="dark"] .btn.ghost:hover{background:#1e293b;color:#fff}
-html[data-tema="dark"] .chip.active,html[data-tema="dark"] .au-panel-tabs button.active{background:#2563eb;border-color:#2563eb;color:#fff}
-html[data-tema="dark"] .chip em,html[data-tema="dark"] .uso-pill,html[data-tema="dark"] .au-tags span,html[data-tema="dark"] .au-bar div,html[data-tema="dark"] .au-tabs,html[data-tema="dark"] .au-sub code{background:#0f172a;color:var(--text)}
-html[data-tema="dark"] .au-tabs button.active{background:#334155;color:#fff}
-html[data-tema="dark"] .side-menu a{color:var(--text)}
-html[data-tema="dark"] .side-menu a:hover,html[data-tema="dark"] .side-menu a.current{background:#0f172a}
-html[data-tema="dark"] .tpl h3,html[data-tema="dark"] .sec-head h2,html[data-tema="dark"] .au-card h1,html[data-tema="dark"] .au-item b,html[data-tema="dark"] .modal-head h2,html[data-tema="dark"] .kpi b{color:#e2e8f0}
-html[data-tema="dark"] .modal-x{background:#334155;color:#e2e8f0}
-html[data-tema="dark"] .au-msg.err{background:#4a1d1d;color:#fca5a5}
-html[data-tema="dark"] .au-msg.ok{background:#16351b;color:#86efac}
-html[data-tema="dark"] .au-msg.warn{background:#4a3a0c;color:#fde68a}
-html[data-tema="dark"] .au-rules li::before{color:#475569}
-html[data-tema="dark"] .au-rules li.ok{color:#86efac}
-html[data-tema="dark"] .count-pill[style*="e8f5e9"]{background:#16351b!important}
 </style>
 </head>
 <body data-page="anotacoes">
@@ -112,7 +86,7 @@ html[data-tema="dark"] .count-pill[style*="e8f5e9"]{background:#16351b!important
 <section class="hero">
   <div class="hero-inner">
     <div>
-      <span class="eyebrow">📋 Respostas Rápidas</span>
+      <span class="eyebrow">📋 Anotações</span>
       <h1>Mensagens Prontas</h1>
       <p>Clique em uma resposta para copiá-la na hora. Use <b>Ver</b> para conferir como ela aparece no WhatsApp antes de enviar.</p>
     </div>
@@ -657,9 +631,11 @@ render();
    ficam em FIREBASE_CONFIG. Com FIREBASE_CONFIG vazio, a página roda em MODO DE
    TESTE LOCAL (tudo só neste navegador).
 
-   Perfis:  gestor   = edita as respostas compartilhadas e gerencia usuários;
-            operador = usa as respostas e tem as próprias anotações.
-   A PRIMEIRA conta criada no sistema vira gestor automaticamente.
+   Perfis:  administrador = criador do sistema; tem tudo que o gestor tem e é o único
+                            que enxerga e concede o perfil de administrador;
+            gestor        = edita as respostas compartilhadas e gerencia usuários;
+            operador      = usa as respostas e tem as próprias anotações.
+   A PRIMEIRA conta criada no sistema vira ADMINISTRADOR automaticamente.
    ===================================================================== */
 (function () {
 'use strict';
@@ -678,7 +654,7 @@ const qa = (s, r) => [...(r || document).querySelectorAll(s)];
 const esc = UI.esc;
 const FAV = '__fav';
 
-/* cópia das respostas originais do arquivo (a base que o gestor pode ajustar) */
+/* cópia das respostas originais do arquivo (a base que a gestão pode ajustar) */
 const BASE_GROUPS = JSON.parse(JSON.stringify(GROUPS));
 const BASE_TEXTOS = Object.assign({}, TEXTOS);
 const BASE_IDS = new Set(BASE_GROUPS.flatMap(g => g.items.map(i => i.id)));
@@ -708,8 +684,8 @@ const ERROS = {
   'auth/network-request-failed': 'Sem conexão com o servidor. Verifique sua internet.',
   'auth/requires-recent-login': 'Por segurança, saia e entre novamente e repita a operação.',
   'permission-denied': 'Sem permissão no banco de dados. Confira se as regras do Firestore (arquivo firestore.rules) foram publicadas.',
-  'app/nao-autorizado': 'Este e-mail não está autorizado a criar conta. Peça ao gestor para liberar o seu e-mail.',
-  'app/desativada': 'Conta desativada. Fale com o gestor.',
+  'app/nao-autorizado': 'Este e-mail não está autorizado a criar conta. Peça ao gestor ou administrador para liberar o seu e-mail.',
+  'app/desativada': 'Conta desativada. Fale com o gestor ou administrador.',
   'local/exists': 'Já existe uma conta com este e-mail.',
   'local/nocrypto': 'O modo de teste exige HTTPS ou localhost.',
   'local/noreset': 'Redefinição por e-mail só funciona com o banco Firebase configurado.'
@@ -746,9 +722,9 @@ async function backendFirebase(){
       const email = usr().email.toLowerCase();
       const base = { email, nome: '', tema: 'light', favoritos: [], usos: {}, ordem: [], ativo: true, criado: Date.now() };
       const g = await F.getDoc(D('config', 'geral'));
-      if (!g.exists()){                         /* primeira conta do sistema = gestor */
-        const b = F.writeBatch(db), p = Object.assign({}, base, { papel: 'gestor' });
-        b.set(pref(), p); b.set(D('config', 'geral'), { cadastroAberto: false, criado: Date.now() });
+      if (!g.exists()){                         /* primeira conta do sistema = administrador (criador) */
+        const b = F.writeBatch(db), p = Object.assign({}, base, { papel: 'admin' });
+        b.set(pref(), p); b.set(D('config', 'geral'), { cadastroAberto: false, criado: Date.now(), criadorUid: usr().uid });
         await b.commit(); return Object.assign({ uid: usr().uid }, p);
       }
       const p = Object.assign({}, base, { papel: 'operador' });
@@ -770,8 +746,11 @@ async function backendFirebase(){
       await F.deleteDoc(pref());
       await A.deleteUser(usr());
     },
-    /* gestão (gestor) */
-    async listUsers(){ return (await F.getDocs(C('usuarios'))).docs.map(d => Object.assign({ uid: d.id }, d.data())); },
+    /* gestão (gestor / administrador): o gestor nunca recebe os administradores */
+    async listUsers(papel){
+      const ref = papel === 'admin' ? C('usuarios') : F.query(C('usuarios'), F.where('papel', 'in', ['operador', 'gestor']));
+      return (await F.getDocs(ref)).docs.map(d => Object.assign({ uid: d.id }, d.data()));
+    },
     setUserAdmin: (uid, patch) => F.updateDoc(D('usuarios', uid), patch),
     async getConfig(){ const s = await F.getDoc(D('config', 'geral')); return s.exists() ? s.data() : { cadastroAberto: false }; },
     setConfig: patch => F.updateDoc(D('config', 'geral'), patch),
@@ -812,8 +791,9 @@ function backendLocal(){
   const emit = () => listeners.forEach(cb => cb(cur() ? { id: cur(), email: cur() } : null));
   const rid = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const mine = () => DB().usuarios[cur()];
-  const gestor = () => { const p = mine(); return p && p.ativo && p.papel === 'gestor'; };
-  const need = () => { if (!gestor()) throw { code: 'permission-denied' }; };
+  const gestao = () => { const p = mine(); return p && p.ativo && (p.papel === 'gestor' || p.papel === 'admin'); };
+  const souAdmin = () => { const p = mine(); return p && p.ativo && p.papel === 'admin'; };
+  const need = () => { if (!gestao()) throw { code: 'permission-denied' }; };
   return {
     mode: 'local',
     watch(cb){ listeners.push(cb); cb(cur() ? { id: cur(), email: cur() } : null); },
@@ -840,7 +820,7 @@ function backendLocal(){
     async createProfile(){
       const d = DB(), email = cur();
       const base = { email, nome: '', tema: 'light', favoritos: [], usos: {}, ordem: [], ativo: true, criado: Date.now() };
-      if (!d.config){ d.config = { cadastroAberto: false }; d.usuarios[email] = Object.assign(base, { papel: 'gestor' }); }
+      if (!d.config){ d.config = { cadastroAberto: false, criadorUid: email }; d.usuarios[email] = Object.assign(base, { papel: 'admin' }); }
       else if (d.config.cadastroAberto || d.autorizados[email]) d.usuarios[email] = Object.assign(base, { papel: 'operador' });
       else throw { code: 'app/nao-autorizado' };
       save(d); return Object.assign({ uid: email }, d.usuarios[email]);
@@ -855,8 +835,13 @@ function backendLocal(){
       const d = DB(), e = cur(); delete d.usuarios[e]; delete d.notas[e]; save(d);
       delete u[e]; S.set('an_users', u); setCur(null); emit();
     },
-    async listUsers(){ need(); const d = DB(); return Object.keys(d.usuarios).map(k => Object.assign({ uid: k }, d.usuarios[k])); },
-    async setUserAdmin(uid, patch){ need(); if (uid === cur()) throw { code: 'permission-denied' }; const d = DB(); Object.assign(d.usuarios[uid], patch); save(d); },
+    async listUsers(){ need(); const d = DB(); return Object.keys(d.usuarios).map(k => Object.assign({ uid: k }, d.usuarios[k])).filter(u => souAdmin() || u.papel !== 'admin'); },
+    async setUserAdmin(uid, patch){
+      need(); const d = DB(), alvo = d.usuarios[uid];
+      if (!alvo || uid === cur() || uid === (d.config || {}).criadorUid) throw { code: 'permission-denied' };
+      if (!souAdmin() && (alvo.papel === 'admin' || patch.papel === 'admin')) throw { code: 'permission-denied' };
+      Object.assign(alvo, patch); save(d);
+    },
     async getConfig(){ return DB().config || { cadastroAberto: false }; },
     async setConfig(patch){ need(); const d = DB(); d.config = Object.assign(d.config || {}, patch); save(d); },
     async listAutorizados(){ need(); return Object.keys(DB().autorizados); },
@@ -879,7 +864,9 @@ function backendLocal(){
 
 /* =============== estado =============== */
 let B = null, user = null, perfil = null, notes = [], shared = {}, gateMsg = null, authSeq = 0;
-const isGestor = () => !!perfil && perfil.papel === 'gestor';
+const isAdmin = () => !!perfil && perfil.papel === 'admin';
+const isGestao = () => !!perfil && (perfil.papel === 'admin' || perfil.papel === 'gestor');   /* gestor e administrador têm os mesmos acessos */
+const PAPEL = { admin: 'Administrador', gestor: 'Gestor', operador: 'Operador' };
 const nomeUser = () => (perfil && perfil.nome) || (user && user.email) || '';
 
 /* ---------- perfil: salvar com atraso (favoritos, contadores, ordem, nome, tema) ---------- */
@@ -895,18 +882,10 @@ async function flushPerfil(){
 }
 window.addEventListener('pagehide', flushPerfil);
 
-/* ---------- tema claro / escuro ---------- */
-function aplicarTema(t){
-  const dark = t === 'dark';
-  if (dark) document.documentElement.setAttribute('data-tema', 'dark'); else document.documentElement.removeAttribute('data-tema');
-  try { localStorage.setItem('an_tema', dark ? 'dark' : 'light'); } catch (e) {}
-  const b = q('#temaBtn'); if (b){ b.textContent = dark ? '☀️' : '🌙'; b.title = dark ? 'Tema claro' : 'Tema escuro'; }
-}
-const temaAtual = () => document.documentElement.getAttribute('data-tema') === 'dark' ? 'dark' : 'light';
-function trocarTema(){
-  const t = temaAtual() === 'dark' ? 'light' : 'dark'; aplicarTema(t);
-  if (perfil) salvarPerfil({ tema: t });
-}
+/* ---------- tema claro / escuro (o botão e a regra ficam no shell.js, valem para todas as páginas) ---------- */
+const aplicarTema = t => UI.tema.set(t === 'dark' ? 'dark' : 'light', true);
+const temaAtual = () => UI.tema.get();
+UI.tema.onChange = t => { if (perfil) salvarPerfil({ tema: t }); };
 
 /* =============== modelo: respostas originais + compartilhadas + anotações =============== */
 function sortedNotes(){
@@ -1077,7 +1056,7 @@ function buildGate(){
   const g = document.createElement('div');
   g.className = 'au-gate'; g.id = 'authGate';
   g.innerHTML = `<form class="au-card" id="auForm" novalidate>
-    <h1>Respostas Rápidas</h1>
+    <h1>Anotações</h1>
     <p class="au-sub">Entre para acessar suas respostas e anotações.</p>
     <div class="au-tabs" role="tablist">
       <button type="button" class="active" data-m="in">Entrar</button>
@@ -1089,7 +1068,7 @@ function buildGate(){
     <div id="auUp" class="hidden">
       <label class="au-f"><span>Confirmar senha</span><div class="au-in"><input id="auPw2" type="password" autocomplete="new-password">${eyeBtn}</div></label>
       ${rulesHTML()}
-      <p class="au-note" style="margin:-4px 0 14px;text-align:left">Seu e-mail precisa ter sido autorizado pelo gestor. A primeira conta do sistema vira gestor automaticamente.</p>
+      <p class="au-note" style="margin:-4px 0 14px;text-align:left">Seu e-mail precisa ter sido autorizado pelo gestor. A primeira conta do sistema vira administrador automaticamente.</p>
     </div>
     <button class="btn au-go" id="auGo" type="submit">Entrar</button>
     <button class="au-link" id="auForgot" type="button">Esqueci minha senha</button>
@@ -1134,12 +1113,12 @@ function buildGate(){
 /* =============== painel de controle =============== */
 function tabsDef(){
   const t = [['notas', '📝 Anotações'], ['uso', '📊 Uso'], ['perfil', '👤 Perfil'], ['senha', '🔒 Senha'], ['backup', '💾 Backup']];
-  if (isGestor()) t.push(['respostas', '📚 Respostas'], ['usuarios', '👥 Usuários']);
+  if (isGestao()) t.push(['respostas', '📚 Respostas'], ['usuarios', '👥 Usuários']);
   return t;
 }
 function openPanel(tab, arg){
   const m = UI.openModal({
-    title: 'Painel de controle', sub: user.email + ' · ' + (isGestor() ? 'Gestor' : 'Operador'), size: 'wide',
+    title: 'Painel de controle', sub: user.email + ' · ' + (PAPEL[perfil.papel] || 'Operador'), size: 'wide',
     html: `<div class="au-panel-tabs">${tabsDef().map(([k, l]) => `<button type="button" data-t="${k}">${l}</button>`).join('')}</div><div id="auBody"></div>`,
     foot: '<button class="btn danger" id="auOut" type="button">Sair da conta</button>'
   });
@@ -1245,13 +1224,13 @@ function tabPerfil(box){
     <div class="au-f"><span>Tema</span><div class="au-panel-tabs" style="margin:0">
       <button type="button" data-tema="light" class="${temaAtual() === 'light' ? 'active' : ''}">☀️ Claro</button>
       <button type="button" data-tema="dark" class="${temaAtual() === 'dark' ? 'active' : ''}">🌙 Escuro</button></div></div>
-    <div class="au-f"><span>Perfil de acesso</span><b>${isGestor() ? 'Gestor (edita respostas e gerencia usuários)' : 'Operador (usa as respostas e tem as próprias anotações)'}</b></div>
+    <div class="au-f"><span>Perfil de acesso</span><b>${isAdmin() ? 'Administrador (acesso total: respostas compartilhadas, usuários e perfis)' : isGestao() ? 'Gestor (edita respostas e gerencia usuários)' : 'Operador (usa as respostas e tem as próprias anotações)'}</b></div>
     ${ver}
     <hr class="au-sep">
     <div class="au-f"><span style="color:var(--vermelho)">Excluir minha conta</span>
-      <p class="au-note" style="text-align:left;margin:0 0 10px">Apaga seu login, suas anotações e suas preferências. Não pode ser desfeito.${isGestor() ? ' <b>Gestores não podem excluir a própria conta: peça a outro gestor para mudar seu perfil para operador antes.</b>' : ''}</p>
-      <div class="au-in"><input id="fDelPw" type="password" placeholder="Digite sua senha para confirmar" autocomplete="current-password" ${isGestor() ? 'disabled' : ''}>${eyeBtn}</div></div>
-    <button class="btn danger" id="fDel" type="button" ${isGestor() ? 'disabled' : ''}>🗑 Excluir minha conta</button></div>`;
+      <p class="au-note" style="text-align:left;margin:0 0 10px">Apaga seu login, suas anotações e suas preferências. Não pode ser desfeito.${isGestao() ? ' <b>Gestores e administradores não podem excluir a própria conta. Peça a outra pessoa da gestão para mudar seu perfil para operador antes.</b>' : ''}</p>
+      <div class="au-in"><input id="fDelPw" type="password" placeholder="Digite sua senha para confirmar" autocomplete="current-password" ${isGestao() ? 'disabled' : ''}>${eyeBtn}</div></div>
+    <button class="btn danger" id="fDel" type="button" ${isGestao() ? 'disabled' : ''}>🗑 Excluir minha conta</button></div>`;
   const msg = q('#fMsg', box);
   q('#fNomeSave', box).onclick = () => {
     salvarPerfil({ nome: q('#fNome', box).value.trim() }); atualizarUserBtn(); rebuild(); showMsg(msg, 'ok', 'Nome salvo.');
@@ -1334,7 +1313,7 @@ function tabRespostas(box, editId){
   const ed = editId && flat.find(x => x.id === editId);
   const ocultas = Object.values(shared).filter(d => d.oculta);
   const row = i => `<div class="au-item"><div class="au-main"><b>${esc(i.label)}</b>
-      <small>${i.novo ? 'Criada pelo gestor' : i.over ? 'Original ajustada pelo gestor' : 'Original do sistema'}</small></div>
+      <small>${i.novo ? 'Criada pela gestão' : i.over ? 'Original ajustada pela gestão' : 'Original do sistema'}</small></div>
       <div class="au-acts"><button class="btn ghost" data-sed="${esc(i.id)}" type="button">✏️ Editar</button>
       ${i.novo ? `<button class="btn ghost" data-sdel="${esc(i.id)}" type="button">🗑 Excluir</button>`
         : `${i.over ? `<button class="btn ghost" data-sres="${esc(i.id)}" type="button">♻ Restaurar original</button>` : ''}<button class="btn ghost" data-shide="${esc(i.id)}" type="button">🙈 Ocultar</button>`}
@@ -1372,18 +1351,23 @@ function tabRespostas(box, editId){
 async function tabUsuarios(box){
   box.innerHTML = '<div class="au-empty">Carregando…</div>';
   let us, aut, cfg;
-  try { [us, aut, cfg] = await Promise.all([B.listUsers(), B.listAutorizados(), B.getConfig()]); }
+  try { [us, aut, cfg] = await Promise.all([B.listUsers(perfil.papel), B.listAutorizados(), B.getConfig()]); }
   catch (e) { box.innerHTML = `<div class="au-msg err show">${esc(erroMsg(e))}</div>`; return; }
+  if (!isAdmin()) us = us.filter(u => u.papel !== 'admin');          /* o gestor nunca vê administradores */
   us.sort((a, b) => a.email.localeCompare(b.email));
+  const opt = (v, atual) => `<option value="${v}" ${atual === v ? 'selected' : ''}>${PAPEL[v]}</option>`;
   box.innerHTML = `<div class="au-msg" id="uMsg" role="alert"></div>
     <div class="au-cat">Quem pode criar conta</div>
     <label class="au-check"><input type="checkbox" id="uOpen" ${cfg.cadastroAberto ? 'checked' : ''}> Permitir que <b>qualquer pessoa</b> crie conta (desmarcado = só e-mails autorizados abaixo)</label>
     <div class="au-tags" style="margin:10px 0">${aut.map(e => `<span>${esc(e)} <button type="button" data-aut-del="${esc(e)}" title="Remover" aria-label="Remover ${esc(e)}">×</button></span>`).join('') || '<em>Nenhum e-mail autorizado ainda.</em>'}</div>
     <div style="display:flex;gap:8px;margin-bottom:18px"><input class="au-plain" id="uNew" type="email" placeholder="email@exemplo.com" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:12px"><button class="btn" id="uAdd" type="button">＋ Autorizar</button></div>
     <div class="au-cat">Usuários (${us.length})</div>
-    ${us.map(u => { const eu = u.uid === user.id; return `<div class="au-item"><div class="au-main"><b>${esc(u.email)}${eu ? ' (você)' : ''}</b><small>${esc(u.nome || 'sem nome')}</small></div>
-      <div class="au-acts"><select class="select" data-papel="${esc(u.uid)}" ${eu ? 'disabled' : ''}><option value="operador" ${u.papel === 'operador' ? 'selected' : ''}>Operador</option><option value="gestor" ${u.papel === 'gestor' ? 'selected' : ''}>Gestor</option></select>
-      <label class="au-check"><input type="checkbox" data-ativo="${esc(u.uid)}" ${u.ativo ? 'checked' : ''} ${eu ? 'disabled' : ''}> Ativo</label></div></div>`; }).join('')}`;
+    ${us.map(u => {
+      const eu = u.uid === user.id, criador = u.uid === cfg.criadorUid, trava = eu || criador;
+      const podeEditar = !trava && (isAdmin() || u.papel !== 'admin');
+      return `<div class="au-item"><div class="au-main"><b>${esc(u.email)}${eu ? ' (você)' : ''}${criador ? ' · criador' : ''}</b><small>${esc(u.nome || 'sem nome')}</small></div>
+      <div class="au-acts"><select class="select" data-papel="${esc(u.uid)}" ${podeEditar ? '' : 'disabled'}>${opt('operador', u.papel)}${opt('gestor', u.papel)}${isAdmin() ? opt('admin', u.papel) : ''}</select>
+      <label class="au-check"><input type="checkbox" data-ativo="${esc(u.uid)}" ${u.ativo ? 'checked' : ''} ${podeEditar ? '' : 'disabled'}> Ativo</label></div></div>`; }).join('')}`;
   const msg = q('#uMsg', box), ok = t => showMsg(msg, 'ok', t), err = e => showMsg(msg, 'err', erroMsg(e));
   q('#uOpen', box).onchange = async ev => { try { await B.setConfig({ cadastroAberto: ev.target.checked }); ok(ev.target.checked ? 'Cadastro aberto a qualquer pessoa.' : 'Cadastro restrito aos e-mails autorizados.'); } catch (e) { ev.target.checked = !ev.target.checked; err(e); } };
   q('#uAdd', box).onclick = async () => {
@@ -1392,10 +1376,11 @@ async function tabUsuarios(box){
     try { await B.addAutorizado(e); tabUsuarios(box); } catch (x) { err(x); }
   };
   qa('[data-aut-del]', box).forEach(b => b.onclick = async () => { try { await B.delAutorizado(b.dataset.autDel); tabUsuarios(box); } catch (x) { err(x); } });
-  qa('[data-papel]', box).forEach(s => s.onchange = async () => {
-    const u = us.find(x => x.uid === s.dataset.papel);
-    if (!confirm('Mudar o perfil de ' + u.email + ' para ' + s.value + '?')){ s.value = u.papel; return; }
-    try { await B.setUserAdmin(u.uid, { papel: s.value }); u.papel = s.value; ok('Perfil atualizado.'); } catch (x) { s.value = u.papel; err(x); }
+  qa('[data-papel]', box).forEach(sel => sel.onchange = async () => {
+    const u = us.find(x => x.uid === sel.dataset.papel);
+    if (sel.value === 'admin' && !isAdmin()){ sel.value = u.papel; return; }
+    if (!confirm('Mudar o perfil de ' + u.email + ' para ' + PAPEL[sel.value] + '?')){ sel.value = u.papel; return; }
+    try { await B.setUserAdmin(u.uid, { papel: sel.value }); u.papel = sel.value; ok('Perfil atualizado.'); } catch (x) { sel.value = u.papel; err(x); }
   });
   qa('[data-ativo]', box).forEach(c => c.onchange = async () => {
     const u = us.find(x => x.uid === c.dataset.ativo);
@@ -1437,7 +1422,9 @@ async function onAuth(u){
     if (seq !== authSeq) return;
     if (!p.ativo) throw { code: 'app/desativada' };
     user = u; perfil = Object.assign({ nome: '', tema: 'light', favoritos: [], usos: {}, ordem: [] }, p);
-    aplicarTema(perfil.tema);
+    /* a escolha feita neste aparelho vale; o perfil só define o tema em aparelho novo */
+    let loc = null; try { loc = localStorage.getItem('an_tema'); } catch (x) {}
+    if (loc && loc !== perfil.tema) salvarPerfil({ tema: loc }); else if (!loc) aplicarTema(perfil.tema);
     await Promise.all([loadShared(), loadNotes()]);
     if (seq !== authSeq) return;
     montarUI(); rebuild();
@@ -1446,17 +1433,13 @@ async function onAuth(u){
     if (novo && B.mode === 'firebase' && !B.verified()) B.sendVerification().catch(() => {});
   } catch (e) {
     if (seq !== authSeq) return;
+    console.error('Login/perfil:', e);
     if (e && e.code === 'app/nao-autorizado') await B.discardIfNew();
     gateMsg = erroMsg(e); await B.signOut();
   }
 }
 
 (async function start(){
-  /* botão de tema (disponível mesmo antes do login) */
-  const t = document.createElement('button');
-  t.id = 'temaBtn'; t.className = 'tema-btn'; t.type = 'button'; t.onclick = trocarTema;
-  q('.topbar').insertBefore(t, q('#menuBtn')); aplicarTema(temaAtual());
-
   const ready = Object.values(FIREBASE_CONFIG).every(v => v);
   try { B = ready ? await backendFirebase() : backendLocal(); }
   catch (e) {

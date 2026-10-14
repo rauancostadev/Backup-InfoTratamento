@@ -39,24 +39,34 @@ VINCULAR O BANCO DE DADOS (Firebase, gratuito, funciona no GitHub Pages)
 Sem FIREBASE_CONFIG preenchido a página funciona em MODO DE TESTE LOCAL
 (contas só no navegador, apenas para testar).
 
-PERFIS (OPERADOR E GESTOR) E RESPOSTAS COMPARTILHADAS
-- A PRIMEIRA conta criada no sistema vira GESTOR automaticamente. Crie a sua conta
-  antes de passar o link para a equipe.
-- Gestor: edita, oculta, cria e restaura as respostas compartilhadas (valem para todos),
-  autoriza e-mails, ativa/desativa usuários e muda o perfil (operador/gestor).
-  Painel de controle > abas "Respostas" e "Usuários".
+PERFIS (ADMINISTRADOR, GESTOR E OPERADOR) E RESPOSTAS COMPARTILHADAS
+- A PRIMEIRA conta criada no sistema vira ADMINISTRADOR (o "criador"). Crie a sua
+  conta antes de passar o link para a equipe. O criador nunca pode ser rebaixado,
+  desativado nem excluído por outra pessoa.
+- Administrador e Gestor têm os mesmos acessos: editam, ocultam, criam e restauram as
+  respostas compartilhadas (valem para todos), autorizam e-mails, ativam/desativam
+  usuários e mudam o perfil entre operador e gestor. (Painel > abas "Respostas" e "Usuários".)
+- Diferença: só o Administrador enxerga o perfil de Administrador e consegue conceder
+  esse perfil a outra pessoa. O Gestor não vê administradores na lista, não vê a
+  opção "Administrador" e não consegue alterar um (o banco também bloqueia isso).
 - Operador: usa as respostas compartilhadas e tem as próprias anotações, favoritos,
   contadores de uso, backup e tema.
-- Quem pode criar conta: por padrão só e-mails autorizados pelo gestor
-  (aba Usuários). Dá para abrir o cadastro a qualquer pessoa na mesma aba.
-- As respostas que estão no código (GROUPS e TEXTOS) continuam sendo a base.
-  O que o gestor muda fica salvo no banco e se sobrepõe a elas; "Restaurar original"
-  volta ao texto do código.
+- Quem pode criar conta: por padrão só e-mails autorizados (aba Usuários). Dá para
+  abrir o cadastro a qualquer pessoa na mesma aba.
+- As respostas que estão no código (GROUPS e TEXTOS) continuam sendo a base. O que a
+  gestão muda fica salvo no banco e se sobrepõe a elas; "Restaurar" volta ao código.
 - Campos variáveis: escreva {nome} no texto e a página pergunta o valor ao copiar.
   {operador} (nome do perfil) e {data} (hoje) entram sozinhos.
 
+TEMA CLARO / ESCURO
+- O botão 🌙/☀️ no topo de todas as páginas troca o tema. A escolha fica salva no
+  navegador e é mantida ao atualizar a página (e entre as páginas do site).
+- As cores do tema escuro ficam no fim do styles.css (bloco "TEMA ESCURO").
+
 IMPORTANTE AO ATUALIZAR: publique de novo o conteúdo do firestore.rules
-(Firestore > Regras > Publicar). As regras antigas não conhecem os perfis.
-A conta que você já tinha vira gestor no próximo login, se ainda não existir gestor.
-Se quiser exigir confirmação de e-mail, o aviso aparece em Painel > Perfil
-(o envio é automático ao criar a conta; o acesso não é bloqueado).
+(Firestore > Regras > Publicar). Sem as regras novas o login mostra
+"Sem permissão no banco de dados".
+Se o banco já tiver o documento config/geral criado por uma versão anterior, apague a
+coleção "config" e a coleção "usuarios" no console do Firebase (ou ajuste o campo
+"papel" da sua conta para admin e crie o campo criadorUid em config/geral com o seu uid),
+para a sua conta virar Administrador no próximo login.
