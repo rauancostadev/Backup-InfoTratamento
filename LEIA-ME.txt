@@ -58,6 +58,17 @@ PERFIS (ADMINISTRADOR, GESTOR E OPERADOR) E RESPOSTAS COMPARTILHADAS
 - Campos variáveis: escreva {nome} no texto e a página pergunta o valor ao copiar.
   {operador} (nome do perfil) e {data} (hoje) entram sozinhos.
 
+ANOTAÇÕES x PAINEL DE CONTROLE
+- "＋ Nova anotação" (e os botões ✏️ ⧉ 🗑 dos cards) abre só a janela de Anotações.
+- "⚙️ Painel de controle" (e o botão com o seu nome no topo) abre o restante:
+  Perfil, Uso, Senha, Backup e, para Gestor/Administrador, Respostas, Usuários e Mensagem.
+
+MENSAGEM PARA QUEM ESTÁ COM O SITE ABERTO (Gestor e Administrador)
+- Painel de controle > aba "Mensagem". O texto (até 500 caracteres) aparece na hora, no
+  topo da tela de todas as pessoas que estão com o site aberto, com o botão "Entendi".
+  Quem abrir o site depois não recebe. Quem envia não vê a própria mensagem.
+- Precisa das regras novas do firestore.rules (coleção "avisos").
+
 TEMA CLARO / ESCURO
 - O botão 🌙/☀️ no topo de todas as páginas troca o tema. A escolha fica salva no
   navegador e é mantida ao atualizar a página (e entre as páginas do site).

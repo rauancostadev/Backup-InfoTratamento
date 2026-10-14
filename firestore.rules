@@ -88,6 +88,15 @@ service cloud.firestore {
       allow delete: if gestao();
     }
 
+    // ---------- aviso para quem está com o site aberto: todos leem, só a gestão envia ----------
+    match /avisos/{id} {
+      allow read: if ativo();
+      allow create, update: if gestao() && id == 'atual'
+        && request.resource.data.keys().hasOnly(['texto', 'enviadoEm', 'uid'])
+        && request.resource.data.texto is string && request.resource.data.texto.size() > 0 && request.resource.data.texto.size() <= 500
+        && request.resource.data.uid == request.auth.uid;
+    }
+
     // ---------- e-mails autorizados a criar conta (só a gestão) ----------
     match /autorizados/{email} {
       allow read, delete: if gestao();

@@ -79,6 +79,14 @@ html.auth-lock .hero, html.auth-lock #conteudo{display:none}
 .btn[disabled]{opacity:.45;pointer-events:none}
 .au-sub code{background:#eef2f7;padding:1px 5px;border-radius:5px}
 
+
+.aviso-bar{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:4000;width:min(580px,calc(100% - 24px));display:flex;gap:12px;align-items:flex-start;background:#fff8e1;color:#4a3a0c;border:1px solid #f5b942;border-left:6px solid var(--laranja);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-lg);animation:avisoIn .35s ease}
+.aviso-ico{font-size:1.5rem;line-height:1}
+.aviso-txt{flex:1;min-width:0;font-size:.92rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.aviso-txt b{display:block;margin-bottom:2px;color:#8a5a00}
+@keyframes avisoIn{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}
+html[data-tema="dark"] .aviso-bar{background:#3b2f0e;color:#fde68a;border-color:#8a6a1c;border-left-color:var(--laranja)}
+html[data-tema="dark"] .aviso-txt b{color:#fbbf24}
 </style>
 </head>
 <body data-page="anotacoes">
@@ -736,9 +744,6 @@ async function backendFirebase(){
     async discardIfNew(){
       const u = usr(); if (u && u.metadata.creationTime === u.metadata.lastSignInTime) { try { await A.deleteUser(u); } catch (e) {} }
     },
-    verified: () => !!usr().emailVerified,
-    sendVerification: () => A.sendEmailVerification(usr()),
-    async reloadUser(){ await usr().reload(); return usr().emailVerified; },
     async deleteAccount(pw){
       await A.reauthenticateWithCredential(usr(), A.EmailAuthProvider.credential(usr().email, pw));
       const s = await F.getDocs(notas());
@@ -758,6 +763,10 @@ async function backendFirebase(){
     addAutorizado: e => F.setDoc(D('autorizados', e.toLowerCase()), { por: usr().email, criado: Date.now() }),
     delAutorizado: e => F.deleteDoc(D('autorizados', e.toLowerCase())),
     /* respostas compartilhadas */
+    /* aviso em tempo real: quem está com o site aberto recebe na hora */
+    async sendAviso(texto){ await F.setDoc(D('avisos', 'atual'), { texto, enviadoEm: Date.now(), uid: usr().uid }); },
+    async getAviso(){ const s = await F.getDoc(D('avisos', 'atual')); return s.exists() ? s.data() : null; },
+    watchAviso: cb => F.onSnapshot(D('avisos', 'atual'), s => cb(s.exists() ? s.data() : null), e => console.warn('aviso', e)),
     async listShared(){ return rows(await F.getDocs(C('respostas'))); },
     async saveShared(id, d){
       const data = { grupo: d.grupo, titulo: d.titulo, texto: d.texto, oculta: !!d.oculta, atualizado: Date.now(), por: usr().email };
@@ -827,8 +836,6 @@ function backendLocal(){
     },
     async updateProfile(patch){ const d = DB(); Object.assign(d.usuarios[cur()], patch); save(d); },
     async discardIfNew(){ const u = users(); delete u[cur()]; S.set('an_users', u); },
-    verified: () => true,
-    async sendVerification(){}, async reloadUser(){ return true; },
     async deleteAccount(pw){
       const u = users(), r = u[cur()];
       if ((await hash(pw, r.salt)) !== r.h) throw { code: 'auth/invalid-credential' };
@@ -847,6 +854,13 @@ function backendLocal(){
     async listAutorizados(){ need(); return Object.keys(DB().autorizados); },
     async addAutorizado(e){ need(); const d = DB(); d.autorizados[e.toLowerCase()] = { por: cur() }; save(d); },
     async delAutorizado(e){ need(); const d = DB(); delete d.autorizados[e.toLowerCase()]; save(d); },
+    async sendAviso(texto){ need(); const d = DB(); d.aviso = { texto, enviadoEm: Date.now(), uid: cur() }; save(d); },
+    async getAviso(){ return DB().aviso || null; },
+    watchAviso(cb){
+      cb(DB().aviso || null); let last = JSON.stringify(DB().aviso || null);
+      const h = e => { if (e.key !== 'an_db') return; const a = DB().aviso || null, j = JSON.stringify(a); if (j !== last){ last = j; cb(a); } };
+      window.addEventListener('storage', h); return () => window.removeEventListener('storage', h);
+    },
     async listShared(){ return Object.keys(DB().respostas).map(k => Object.assign({ id: k }, DB().respostas[k])); },
     async saveShared(id, x){ need(); const d = DB(); d.respostas[id || rid()] = { grupo: x.grupo, titulo: x.titulo, texto: x.texto, oculta: !!x.oculta, atualizado: Date.now(), por: cur() }; save(d); },
     async deleteShared(id){ need(); const d = DB(); delete d.respostas[id]; save(d); },
@@ -1112,22 +1126,28 @@ function buildGate(){
 
 /* =============== painel de controle =============== */
 function tabsDef(){
-  const t = [['notas', '📝 Anotações'], ['uso', '📊 Uso'], ['perfil', '👤 Perfil'], ['senha', '🔒 Senha'], ['backup', '💾 Backup']];
-  if (isGestao()) t.push(['respostas', '📚 Respostas'], ['usuarios', '👥 Usuários']);
+  const t = [['perfil', '👤 Perfil'], ['uso', '📊 Uso'], ['senha', '🔒 Senha'], ['backup', '💾 Backup']];
+  if (isGestao()) t.push(['respostas', '📚 Respostas'], ['usuarios', '👥 Usuários'], ['mensagem', '📢 Mensagem']);
   return t;
 }
+/* openPanel('notas', id)  -> janela "Anotações" (só as anotações; é a de "+ Nova anotação")
+   openPanel('perfil')     -> "Painel de controle" (todo o restante) */
 function openPanel(tab, arg){
+  if (tab === 'notas'){
+    const m = UI.openModal({ title: 'Anotações', sub: user.email, size: 'wide', html: '<div id="auBody"></div>' });
+    tabNotas(q('#auBody', m.body), arg); return;
+  }
   const m = UI.openModal({
     title: 'Painel de controle', sub: user.email + ' · ' + (PAPEL[perfil.papel] || 'Operador'), size: 'wide',
     html: `<div class="au-panel-tabs">${tabsDef().map(([k, l]) => `<button type="button" data-t="${k}">${l}</button>`).join('')}</div><div id="auBody"></div>`,
     foot: '<button class="btn danger" id="auOut" type="button">Sair da conta</button>'
   });
   const body = q('#auBody', m.body);
-  const FN = { notas: tabNotas, uso: tabUso, perfil: tabPerfil, senha: tabSenha, backup: tabBackup, respostas: tabRespostas, usuarios: tabUsuarios };
+  const FN = { uso: tabUso, perfil: tabPerfil, senha: tabSenha, backup: tabBackup, respostas: tabRespostas, usuarios: tabUsuarios, mensagem: tabMensagem };
   const setTab = (t, a) => { qa('.au-panel-tabs button', m.body).forEach(b => b.classList.toggle('active', b.dataset.t === t)); FN[t](body, a); };
   qa('.au-panel-tabs button', m.body).forEach(b => b.onclick = () => setTab(b.dataset.t));
   q('#auOut', m.foot).onclick = async () => { UI.closeModal(); await flushPerfil(); await B.signOut(); };
-  setTab(tab || 'notas', arg);
+  setTab(tab || 'perfil', arg);
 }
 const catsOrdenadas = list => [...new Set(list)].sort((a, b) => a === '' ? -1 : b === '' ? 1 : a.localeCompare(b, 'pt-BR'));
 
@@ -1210,11 +1230,6 @@ function tabUso(box){
 
 /* ---------- Perfil ---------- */
 function tabPerfil(box){
-  const ver = B.mode === 'firebase' ? (B.verified()
-    ? '<div class="au-msg ok show">✔ E-mail verificado</div>'
-    : `<div class="au-msg warn show">E-mail ainda não verificado. Enviamos um link de confirmação para ${esc(user.email)}.</div>
-       <div style="display:flex;gap:8px;margin-bottom:14px"><button class="btn ghost" id="fReenv" type="button">Reenviar e-mail</button><button class="btn ghost" id="fJa" type="button">Já verifiquei</button></div>`)
-    : '<div class="au-msg warn show">Verificação de e-mail indisponível no modo de teste local.</div>';
   box.innerHTML = `<div style="max-width:460px">
     <div class="au-msg" id="fMsg" role="alert"></div>
     <label class="au-f"><span>Nome de exibição</span><input class="au-plain" id="fNome" maxlength="40" value="${esc(perfil.nome || '')}" placeholder="Ex.: Digite o seu nome..."></label>
@@ -1224,8 +1239,7 @@ function tabPerfil(box){
     <div class="au-f"><span>Tema</span><div class="au-panel-tabs" style="margin:0">
       <button type="button" data-tema="light" class="${temaAtual() === 'light' ? 'active' : ''}">☀️ Claro</button>
       <button type="button" data-tema="dark" class="${temaAtual() === 'dark' ? 'active' : ''}">🌙 Escuro</button></div></div>
-    <div class="au-f"><span>Perfil de acesso</span><b>${isAdmin() ? 'Administrador (acesso total: respostas compartilhadas, usuários e perfis)' : isGestao() ? 'Gestor (edita respostas e gerencia usuários)' : 'Operador (usa as respostas e tem as próprias anotações)'}</b></div>
-    ${ver}
+    <div class="au-f"><span>Perfil de acesso</span><b>${PAPEL[perfil.papel] || 'Operador'}</b></div>
     <hr class="au-sep">
     <div class="au-f"><span style="color:var(--vermelho)">Excluir minha conta</span>
       <p class="au-note" style="text-align:left;margin:0 0 10px">Apaga seu login, suas anotações e suas preferências. Não pode ser desfeito.${isGestao() ? ' <b>Gestores e administradores não podem excluir a própria conta. Peça a outra pessoa da gestão para mudar seu perfil para operador antes.</b>' : ''}</p>
@@ -1236,8 +1250,6 @@ function tabPerfil(box){
     salvarPerfil({ nome: q('#fNome', box).value.trim() }); atualizarUserBtn(); rebuild(); showMsg(msg, 'ok', 'Nome salvo.');
   };
   qa('[data-tema]', box).forEach(b => b.onclick = () => { aplicarTema(b.dataset.tema); salvarPerfil({ tema: b.dataset.tema }); tabPerfil(box); });
-  const re = q('#fReenv', box); if (re) re.onclick = async () => { try { await B.sendVerification(); showMsg(msg, 'ok', 'E-mail reenviado. Confira também a caixa de spam.'); } catch (e) { showMsg(msg, 'err', erroMsg(e)); } };
-  const ja = q('#fJa', box); if (ja) ja.onclick = async () => { try { (await B.reloadUser()) ? tabPerfil(box) : showMsg(msg, 'err', 'Ainda não consta como verificado.'); } catch (e) { showMsg(msg, 'err', erroMsg(e)); } };
   q('#fDel', box).onclick = async () => {
     const p = q('#fDelPw', box).value;
     if (!p) return showMsg(msg, 'err', 'Digite sua senha para confirmar.');
@@ -1388,6 +1400,53 @@ async function tabUsuarios(box){
   });
 }
 
+/* ---------- Mensagem para todos que estão com o site aberto (gestor / administrador) ---------- */
+async function tabMensagem(box){
+  let atual = null; try { atual = await B.getAviso(); } catch (e) {}
+  const quando = t => new Date(t).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  box.innerHTML = `<p class="au-sub" style="margin-top:0">A mensagem aparece, na hora, no topo da tela de <b>todas as pessoas que estão com o site aberto</b>. Quem abrir o site depois não recebe.</p>
+    <div class="au-msg" id="mMsg" role="alert"></div>
+    <label class="au-f"><span>Mensagem</span><textarea id="mTxt" maxlength="500" placeholder="Ex.: Sistema do Regula instável, aguardem novas orientações."></textarea></label>
+    <div style="display:flex;gap:10px;align-items:center"><button class="btn" id="mSend" type="button">📢 Enviar para todos</button><span class="au-note" id="mCnt" style="margin:0">0/500</span></div>
+    ${atual ? `<div class="au-cat" style="margin-top:20px">Última mensagem enviada · ${esc(quando(atual.enviadoEm))}</div>
+      <div class="au-item"><div class="au-main"><small style="white-space:pre-wrap;max-width:none">${esc(atual.texto)}</small></div>
+      <div class="au-acts"><button class="btn ghost" id="mAgain" type="button">↻ Usar este texto</button></div></div>` : ''}`;
+  const txt = q('#mTxt', box), msg = q('#mMsg', box), cnt = () => q('#mCnt', box).textContent = txt.value.length + '/500';
+  txt.oninput = cnt;
+  const again = q('#mAgain', box); if (again) again.onclick = () => { txt.value = atual.texto; cnt(); txt.focus(); };
+  q('#mSend', box).onclick = async () => {
+    const t = txt.value.trim();
+    if (!t) return showMsg(msg, 'err', 'Escreva a mensagem.');
+    if (!confirm('Enviar esta mensagem agora para todos que estão com o site aberto?')) return;
+    try { await B.sendAviso(t); UI.toast('Mensagem enviada'); tabMensagem(box); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+  };
+}
+let unAviso = null;
+const avisoVisto = id => { try { return localStorage.getItem('an_aviso_visto') === id; } catch (e) { return false; } };
+function mostrarAviso(a, id){
+  const old = q('#avisoBar'); if (old) old.remove();
+  const bar = document.createElement('div');
+  bar.id = 'avisoBar'; bar.className = 'aviso-bar'; bar.setAttribute('role', 'alert');
+  bar.innerHTML = `<div class="aviso-ico">📢</div><div class="aviso-txt"><b>Aviso da gestão</b><div>${esc(a.texto)}</div></div><button class="btn" type="button">Entendi</button>`;
+  q('button', bar).onclick = () => { try { localStorage.setItem('an_aviso_visto', id); } catch (e) {} bar.remove(); };
+  document.body.appendChild(bar);
+}
+function iniciarAvisos(){
+  pararAvisos(); let primeiro = true;
+  try {
+    unAviso = B.watchAviso(a => {
+      const era1a = primeiro; primeiro = false;
+      if (!a || !a.enviadoEm || !user || a.uid === user.id) return;          /* quem enviou não recebe a própria */
+      const id = a.enviadoEm + '_' + a.uid;
+      if (avisoVisto(id)) return;
+      if (era1a && Date.now() - a.enviadoEm > 5 * 60 * 1000) return;         /* só recebe quem estava com o site aberto */
+      mostrarAviso(a, id);
+    });
+  } catch (e) { console.warn('avisos indisponíveis', e); }
+}
+function pararAvisos(){ if (unAviso){ try { unAviso(); } catch (e) {} unAviso = null; } const b = q('#avisoBar'); if (b) b.remove(); }
+
 /* =============== topo e barra de ferramentas =============== */
 function atualizarUserBtn(){
   const b = q('#userBtn'); if (b) b.innerHTML = '👤 <span>' + esc(nomeUser()) + '</span>';
@@ -1396,13 +1455,13 @@ function montarUI(){
   desmontarUI();
   const b = document.createElement('button');
   b.id = 'userBtn'; b.className = 'user-btn'; b.type = 'button'; b.title = 'Painel de controle';
-  b.onclick = () => openPanel('notas');
+  b.onclick = () => openPanel('perfil');
   q('.topbar').insertBefore(b, q('#menuBtn')); atualizarUserBtn();
   const tb = q('.toolbar');
   const add = document.createElement('button');
   add.className = 'btn nova-nota'; add.type = 'button'; add.textContent = '＋ Nova anotação'; add.onclick = () => openPanel('notas');
   const painel = document.createElement('button');
-  painel.className = 'btn ghost painel-btn'; painel.type = 'button'; painel.textContent = '⚙️ Painel de controle'; painel.onclick = () => openPanel('notas');
+  painel.className = 'btn ghost painel-btn'; painel.type = 'button'; painel.textContent = '⚙️ Painel de controle'; painel.onclick = () => openPanel('perfil');
   tb.appendChild(add); tb.appendChild(painel);
 }
 function desmontarUI(){ qa('#userBtn,.nova-nota,.painel-btn').forEach(x => x.remove()); }
@@ -1411,14 +1470,14 @@ function desmontarUI(){ qa('#userBtn,.nova-nota,.painel-btn').forEach(x => x.rem
 async function onAuth(u){
   const seq = ++authSeq;
   if (!u){
-    user = null; perfil = null; notes = []; shared = {}; pend = null;
+    user = null; perfil = null; notes = []; shared = {}; pend = null; pararAvisos();
     desmontarUI(); const old = q('#authGate'); if (old) old.remove();
     document.documentElement.classList.add('auth-lock');
     rebuild(); buildGate(); return;
   }
   try {
-    let p = await B.getProfile(), novo = false;
-    if (!p){ p = await B.createProfile(); novo = true; }
+    let p = await B.getProfile();
+    if (!p) p = await B.createProfile();
     if (seq !== authSeq) return;
     if (!p.ativo) throw { code: 'app/desativada' };
     user = u; perfil = Object.assign({ nome: '', tema: 'light', favoritos: [], usos: {}, ordem: [] }, p);
@@ -1427,10 +1486,9 @@ async function onAuth(u){
     if (loc && loc !== perfil.tema) salvarPerfil({ tema: loc }); else if (!loc) aplicarTema(perfil.tema);
     await Promise.all([loadShared(), loadNotes()]);
     if (seq !== authSeq) return;
-    montarUI(); rebuild();
+    montarUI(); rebuild(); iniciarAvisos();
     const g = q('#authGate'); if (g) g.remove();
     document.documentElement.classList.remove('auth-lock');
-    if (novo && B.mode === 'firebase' && !B.verified()) B.sendVerification().catch(() => {});
   } catch (e) {
     if (seq !== authSeq) return;
     console.error('Login/perfil:', e);
