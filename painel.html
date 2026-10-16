@@ -124,7 +124,7 @@ const CARDS = [
   { k: 'senha',     ico: '🔒', t: 'Senha',     d: 'Trocar a sua senha',                c: '#CC5500' },
   { k: 'backup',    ico: '💾', t: 'Backup',    d: 'Salvar e importar anotações',       c: '#00838f' },
   { k: 'usuarios',  ico: '👥', t: 'Usuários',  d: 'Contas e senha temporária',         c: '#6a1b9a', gestao: true },
-  { k: 'avisos',    ico: '📢', t: 'Avisos',    d: 'Avisar quem está com o site aberto', c: '#c2185b', gestao: true }
+  { k: 'avisos',    ico: '📢', t: 'Avisos',    d: 'Avisar quem está logado', c: '#c2185b', gestao: true }
 ];
 const FN = { perfil: tabPerfil, mensagens: tabMensagens, senha: tabSenha, backup: tabBackup, usuarios: tabUsuarios, avisos: tabAvisos };
 const cardsVisiveis = () => CARDS.filter(c => !c.gestao || Core.isGestao());
@@ -403,9 +403,9 @@ async function tabUsuarios(box){
 async function tabAvisos(box){
   let atual = null; try { atual = await B().getAviso(); } catch (e) {}
   const quando = t => new Date(t).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-  box.innerHTML = `<p class="au-sub" style="margin-top:0">O aviso aparece, na hora, no topo da tela de <b>todas as pessoas que entraram com usuário e estão com o site aberto</b>. Se a pessoa estiver em outra aba ou janela, o título da aba pisca com "📢 Aviso da gestão!". Quem abrir o site depois não recebe, e você não vê o seu próprio aviso.</p>
+  box.innerHTML = `<p class="au-sub" style="margin-top:0">O aviso aparece, na hora, no topo da tela de <b>todas as pessoas que entraram com usuário e senha</b>. Se a pessoa estiver em outra aba ou janela, o título da aba pisca com "📢 Aviso da gestão!". Quem abrir o site depois não recebe, e você não vê o seu próprio aviso.</p>
     <div class="au-msg" id="mMsg" role="alert"></div>
-    <label class="au-f"><span>Aviso</span><textarea id="mTxt" maxlength="500" placeholder="Ex.: O sistema do Regula está instável. Aguardem novas orientações."></textarea></label>
+    <label class="au-f"><span>Aviso</span><textarea id="mTxt" maxlength="500" placeholder="Ex.: O callwe está com instabilidade. Aguardem novas orientações."></textarea></label>
     <div style="display:flex;gap:10px;align-items:center"><button class="btn" id="mSend" type="button">📢 Enviar para todos</button><span class="au-note" id="mCnt" style="margin:0">0/500</span></div>
     ${atual ? `<div class="au-cat" style="margin-top:20px">Último aviso enviado · ${esc(quando(atual.enviadoEm))}</div>
       <div class="au-item"><div class="au-main"><small style="white-space:pre-wrap;max-width:none">${esc(atual.texto)}</small></div>
