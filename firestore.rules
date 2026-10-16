@@ -57,7 +57,7 @@ service cloud.firestore {
         && request.resource.data.pedido == false
         && emailAtual().split('@')[0] == usuario
         && getAfter(docUsuario(request.auth.uid)).data.get('usuario', '') == usuario;
-      allow update:
+      allow update: if
         // gestão: gera a senha temporária e dispensa pedidos
         (gestao() && mudou().hasOnly(['reset', 'expira', 'pedido']))
         // a própria pessoa, ao concluir a entrada com a senha temporária
