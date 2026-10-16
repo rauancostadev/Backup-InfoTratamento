@@ -213,9 +213,21 @@ service cloud.firestore {
           && request.resource.data.cpf is string && request.resource.data.cpf.size() <= 11
           && request.resource.data.nascimento is string && request.resource.data.nascimento.size() <= 10
           && request.resource.data.contato is string && request.resource.data.contato.size() <= 11
-          && request.resource.data.anexos is list && request.resource.data.anexos.size() <= 10;
+          && request.resource.data.anexos is list && request.resource.data.anexos.size() <= 5;
         allow update: if gestao() && mudou().hasOnly(['atualizadoPor'])
           && request.resource.data.atualizadoPor is string && request.resource.data.atualizadoPor.size() <= 60;
+        allow delete: if admin();
+      }
+
+      // conteúdo dos anexos (base64 em partes): qualquer pessoa cria junto com a solicitação; só a gestão lê
+      match /anexos/{parte} {
+        allow read: if gestao();
+        allow create: if !exists(/databases/$(database)/documents/triagens/$(protocolo))
+          && existsAfter(/databases/$(database)/documents/triagens/$(protocolo))
+          && parte.matches('^[0-4]_[0-9]{1,2}$')
+          && request.resource.data.keys().hasOnly(['arquivo', 'parte', 'dados'])
+          && request.resource.data.arquivo is int && request.resource.data.parte is int
+          && request.resource.data.dados is string && request.resource.data.dados.size() <= 700000;
         allow delete: if admin();
       }
     }

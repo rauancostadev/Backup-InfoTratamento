@@ -19,7 +19,10 @@
          { cpf, nascimento, contato, anexos:[{nome,tamanho,tipo,caminho,url}], atualizadoPor? }
    (Os dados sensíveis ficam separados para que quem consulta um protocolo nunca receba CPF/telefone.)
 
-   ARQUIVOS ANEXOS vão para o Firebase Storage em  triagens/{protocolo}/…
+   ARQUIVOS ANEXOS ficam no próprio Firestore (sem Firebase Storage, plano gratuito):
+     triagens/{LIGA-XXXXX}/anexos/{n}_{parte}  { arquivo, parte, dados(base64) }
+   Imagens são reduzidas/comprimidas no navegador; cada arquivo é cortado em partes de ~700 KB
+   (limite de 1 MiB por documento do Firestore). Só a gestão lê.
    ===================================================================== */
 (function () {
   'use strict';
@@ -36,10 +39,6 @@
     appId: "1:972789860884:web:a89ec872539d2613173501"
   };
 
-  /* Bucket do Firebase Storage (Console Firebase > Storage > aba "Arquivos", começo da lista: gs://...).
-     Projetos novos usam "<projeto>.firebasestorage.app"; projetos antigos, "<projeto>.appspot.com". */
-  const STORAGE_BUCKET = 'infotratamento.firebasestorage.app';
-
   const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';   /* mesma versão do core.js */
   const COLECAO = 'triagens';
 
@@ -52,12 +51,18 @@
     'Não Autorizado': { cls: 'recusado',   ico: '🔴', desc: 'Solicitação recusada' }
   };
 
-  /* Regras dos anexos */
+  /* Regras dos anexos (guardados no Firestore: documento = no máx. 1 MiB, e o lote de gravação ~10 MiB) */
   const ANEXO = {
     exts: ['pdf', 'jpg', 'jpeg', 'png'],
     tipos: { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' },
-    maxBytes: 10 * 1024 * 1024,    /* 10 MB por arquivo */
-    maxQtd: 10
+    maxPdf: 3 * 1024 * 1024,        /* PDF não comprime: até 3 MB */
+    maxImagemOrigem: 15 * 1024 * 1024,   /* foto escolhida (será reduzida); depois de reduzida precisa caber em maxFinal */
+    maxFinal: 3 * 1024 * 1024,      /* tamanho de cada arquivo depois do preparo */
+    maxTotal: 6 * 1024 * 1024,      /* soma de todos os anexos depois do preparo */
+    maxQtd: 5,
+    lado: 1800,                     /* imagens: maior lado em pixels */
+    qualidade: 0.75,                /* imagens: qualidade JPEG */
+    parte: 700000                   /* caracteres base64 por documento */
   };
 
   /* Alfabeto do protocolo: sem 0/O e 1/I (confundem na hora de ditar por telefone). 32 letras = sem viés no sorteio. */
@@ -157,7 +162,8 @@
   /* Traduz o erro técnico em texto que a pessoa entende */
   function erroMsg(e) {
     const c = e && e.code;
-    if (c === 'app/anexo') return 'Não foi possível enviar os anexos. Verifique a conexão e se o Firebase Storage está ativado e com as regras publicadas (arquivo storage.rules). Nada foi registrado. Tente novamente.';
+    if (c === 'app/anexo-tamanho') return (e && e.message) || 'Os anexos ficaram grandes demais.';
+    if (c === 'app/anexo') return 'Não foi possível preparar um dos anexos. Tente outro arquivo ou envie uma foto menor. Nada foi registrado.';
     if (c === 'permission-denied') return 'Sem permissão no banco de dados. Confira se as regras mais recentes (arquivo firestore.rules) foram publicadas no Firebase.';
     if (c === 'unavailable' || c === 'auth/network-request-failed' || (e && /network|offline|fetch/i.test(e.message || ''))) return 'Sem conexão com o servidor. Verifique a internet e tente de novo.';
     if (c === 'app/sem-protocolo') return 'Não foi possível gerar um protocolo livre. Tente novamente.';
@@ -182,26 +188,51 @@
 
   const paraData = ts => ts && typeof ts.toDate === 'function' ? ts.toDate() : (ts ? new Date(ts) : null);
 
-  /* ---------- envia os anexos para o Storage e devolve os metadados ---------- */
-  async function enviarAnexos(app, protocolo, arquivos, avisar) {
-    const lista = [];
-    if (!arquivos.length) return lista;
-    try {
-      const S = await import(SDK + 'firebase-storage.js');
-      const st = S.getStorage(app, 'gs://' + STORAGE_BUCKET);
-      for (let i = 0; i < arquivos.length; i++) {
-        const f = arquivos[i], tipo = ANEXO.tipos[extDe(f.name)] || f.type;
-        const caminho = 'triagens/' + protocolo + '/' + (i + 1) + '-' + nomeSeguro(f.name);
-        avisar('Enviando anexos (' + (i + 1) + ' de ' + arquivos.length + ')…');
-        const ref = S.ref(st, caminho);
-        await S.uploadBytes(ref, f, { contentType: tipo });
-        lista.push({ nome: f.name.slice(0, 150), tamanho: f.size, tipo: tipo, caminho: caminho, url: await S.getDownloadURL(ref) });
-      }
-    } catch (e) {
-      console.error('Falha ao enviar anexos:', e);
-      throw { code: 'app/anexo', message: e && e.message };
+  /* ---------- prepara os anexos: reduz imagens, converte em base64 e corta em partes ---------- */
+  function lerBase64(blob) {
+    return new Promise(function (ok, erro) {
+      const r = new FileReader();
+      r.onload = function () { ok(String(r.result).split(',')[1] || ''); };
+      r.onerror = function () { erro(r.error); };
+      r.readAsDataURL(blob);
+    });
+  }
+
+  /* foto → JPEG com no máx. 1800 px de lado (fundo branco para PNG com transparência).
+     Se o resultado não ficar menor que o original, mantém o original. */
+  async function reduzirImagem(f) {
+    const bmp = await createImageBitmap(f);
+    const k = Math.min(1, ANEXO.lado / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    cx.drawImage(bmp, 0, 0, cv.width, cv.height);
+    if (bmp.close) bmp.close();
+    const blob = await new Promise(function (ok) { cv.toBlob(ok, 'image/jpeg', ANEXO.qualidade); });
+    return blob && blob.size < f.size ? { blob: blob, tipo: 'image/jpeg', nome: f.name.replace(/\.[^.]+$/, '') + '.jpg' } : { blob: f, tipo: ANEXO.tipos[extDe(f.name)] || f.type, nome: f.name };
+  }
+
+  async function prepararAnexos(arquivos, avisar) {
+    const lista = []; let total = 0;
+    for (let i = 0; i < arquivos.length; i++) {
+      const f = arquivos[i];
+      avisar('Preparando anexos (' + (i + 1) + ' de ' + arquivos.length + ')…');
+      let p;
+      try { p = extDe(f.name) === 'pdf' ? { blob: f, tipo: 'application/pdf', nome: f.name } : await reduzirImagem(f); }
+      catch (e) { console.error('Falha ao preparar anexo:', e); throw { code: 'app/anexo' }; }
+      if (p.blob.size > ANEXO.maxFinal) throw { code: 'app/anexo-tamanho', message: '"' + f.name + '" continua maior que ' + fmtTamanho(ANEXO.maxFinal) + ' mesmo depois de reduzido. Use um arquivo menor.' };
+      total += p.blob.size;
+      lista.push(p);
     }
-    return lista;
+    if (total > ANEXO.maxTotal) throw { code: 'app/anexo-tamanho', message: 'Os anexos somam ' + fmtTamanho(total) + ' (limite ' + fmtTamanho(ANEXO.maxTotal) + '). Remova algum arquivo ou use arquivos menores.' };
+    const saida = [];
+    for (let i = 0; i < lista.length; i++) {
+      const b64 = await lerBase64(lista[i].blob), partes = [];
+      for (let k = 0; k < b64.length; k += ANEXO.parte) partes.push(b64.slice(k, k + ANEXO.parte));
+      saida.push({ nome: lista[i].nome.slice(0, 150), tipo: lista[i].tipo, tamanho: lista[i].blob.size, partes: partes });
+    }
+    return saida;
   }
 
   /* ---------- NOVA SOLICITAÇÃO ----------
@@ -219,7 +250,7 @@
     }
     if (!protocolo) throw { code: 'app/sem-protocolo' };
 
-    const anexos = await enviarAnexos(c.app, protocolo, arquivos || [], avisar);
+    const prontos = await prepararAnexos(arquivos || [], avisar);   /* antes de gravar: se falhar, nada é registrado */
 
     avisar('Registrando solicitação…');
     const b = F.writeBatch(c.db);
@@ -234,7 +265,12 @@
       cpf: so09(dados.cpf),
       nascimento: dados.nascimento || '',
       contato: so09(dados.contato),
-      anexos: anexos
+      anexos: prontos.map(function (a) { return { nome: a.nome, tipo: a.tipo, tamanho: a.tamanho, partes: a.partes.length }; })
+    });
+    prontos.forEach(function (a, i) {                   /* conteúdo dos arquivos, em partes */
+      a.partes.forEach(function (dados, k) {
+        b.set(F.doc(c.db, COLECAO, protocolo, 'anexos', i + '_' + k), { arquivo: i, parte: k, dados: dados });
+      });
     });
     await b.commit();
     return { protocolo: protocolo, criadoEm: new Date() };
@@ -272,6 +308,19 @@
     return s.exists() ? s.data() : null;
   }
 
+  /* baixa um anexo: junta as partes, monta o arquivo e abre numa nova aba (a = item de detalhes().anexos, i = posição) */
+  async function abrirAnexo(protocolo, i, a) {
+    const c = await fb(), F = c.F;
+    const docs = await Promise.all(Array.from({ length: a.partes }, function (_, k) { return F.getDoc(F.doc(c.db, COLECAO, protocolo, 'anexos', i + '_' + k)); }));
+    if (docs.some(function (d) { return !d.exists(); })) throw new Error('Anexo incompleto no banco de dados.');
+    const bin = atob(docs.map(function (d) { return d.data().dados; }).join(''));
+    const bytes = new Uint8Array(bin.length);
+    for (let n = 0; n < bin.length; n++) bytes[n] = bin.charCodeAt(n);
+    const url = URL.createObjectURL(new Blob([bytes], { type: a.tipo }));
+    window.open(url, '_blank', 'noopener');
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  }
+
   /* altera o status (grava também quem alterou e quando) */
   async function atualizarStatus(protocolo, status, por) {
     if (STATUS_LISTA.indexOf(status) < 0) throw new Error('Status inválido');
@@ -283,7 +332,7 @@
 
   window.Triagem = {
     STATUS: STATUS, STATUS_LISTA: STATUS_LISTA, STATUS_INFO: STATUS_INFO, ANEXO: ANEXO,
-    criar: criar, buscar: buscar, listar: listar, contarPendentes: contarPendentes, detalhes: detalhes, atualizarStatus: atualizarStatus,
+    criar: criar, buscar: buscar, listar: listar, contarPendentes: contarPendentes, detalhes: detalhes, abrirAnexo: abrirAnexo, atualizarStatus: atualizarStatus,
     normalizarProtocolo: normalizarProtocolo, gerarProtocolo: gerarProtocolo,
     badge: badge, erroMsg: erroMsg, fmtData: fmtData, fmtCPF: fmtCPF, fmtTel: fmtTel, fmtNasc: fmtNasc, fmtTamanho: fmtTamanho,
     /* expostos para teste */
@@ -359,7 +408,8 @@
       if (ANEXO.exts.indexOf(ext) < 0) return recusas.push('"' + f.name + '": formato não permitido (use PDF, JPG, JPEG ou PNG).');
       if (f.type && f.type !== ANEXO.tipos[ext] && !(ext === 'jpg' && f.type === 'image/jpeg')) return recusas.push('"' + f.name + '": o conteúdo não corresponde à extensão.');
       if (f.size === 0) return recusas.push('"' + f.name + '": arquivo vazio.');
-      if (f.size > ANEXO.maxBytes) return recusas.push('"' + f.name + '": maior que ' + fmtTamanho(ANEXO.maxBytes) + '.');
+      if (ext === 'pdf' && f.size > ANEXO.maxPdf) return recusas.push('"' + f.name + '": PDF maior que ' + fmtTamanho(ANEXO.maxPdf) + '.');
+      if (ext !== 'pdf' && f.size > ANEXO.maxImagemOrigem) return recusas.push('"' + f.name + '": imagem muito grande (máx. ' + fmtTamanho(ANEXO.maxImagemOrigem) + ').');
       if (arquivos.some(function (a) { return a.name === f.name && a.size === f.size && a.lastModified === f.lastModified; })) return;   /* já escolhido */
       if (arquivos.length >= ANEXO.maxQtd) return recusas.push('"' + f.name + '": limite de ' + ANEXO.maxQtd + ' arquivos.');
       arquivos.push(f);

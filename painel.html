@@ -486,12 +486,16 @@ async function tabTriagem(box){
       try {
         const x = await Triagem.detalhes(b.dataset.det);
         if (!x){ d.textContent = 'Sem dados adicionais.'; return; }
-        const anexos = (x.anexos || []).filter(a => /^https:\/\//.test(a.url));
+        const anexos = x.anexos || [];
         d.innerHTML = `<div><b>CPF</b><br>${esc(x.cpf ? Triagem.fmtCPF(x.cpf) : '—')}</div>
           <div><b>Nascimento</b><br>${esc(Triagem.fmtNasc(x.nascimento))}</div>
           <div><b>Contato</b><br>${esc(x.contato ? Triagem.fmtTel(x.contato) : '—')}</div>
-          <div><b>Anexos (${anexos.length})</b><br>${anexos.map(a => `<a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${esc(a.nome)}</a> (${esc(Triagem.fmtTamanho(a.tamanho || 0))})`).join('<br>') || '—'}</div>
+          <div><b>Anexos (${anexos.length})</b><br>${anexos.map((a, n) => `<button type="button" class="btn ghost" data-anexo="${n}" style="margin:3px 6px 3px 0">📄 ${esc(a.nome)} (${esc(Triagem.fmtTamanho(a.tamanho || 0))})</button>`).join('') || '—'}</div>
           ${x.atualizadoPor ? `<div><b>Última alteração por</b><br>${esc(x.atualizadoPor)}</div>` : ''}`;
+        qa('[data-anexo]', d).forEach(ab => ab.onclick = async () => {
+          try { await Triagem.abrirAnexo(b.dataset.det, Number(ab.dataset.anexo), anexos[Number(ab.dataset.anexo)]); }
+          catch (e) { showMsg(msg, 'err', Triagem.erroMsg(e)); }
+        });
       } catch (e) { d.textContent = Triagem.erroMsg(e); }
     });
   }
