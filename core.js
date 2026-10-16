@@ -179,11 +179,11 @@
       },
       /* perfil */
       async getProfile() {
-        var uid = usr().uid, s = await F.getDoc(D('usuarios', uid));
-        if (!s.exists()) {                       /* entrou com a senha temporária: o perfil vem do vínculo */
-          var v = await F.getDoc(D('vinculos', uid));
-          if (v.exists()) s = await F.getDoc(D('usuarios', v.data().perfil));
-        }
+        var uid = usr().uid, s = null;
+        /* entrou com a senha temporária: o perfil vem do vínculo (ler antes o perfil do uid novo seria negado pelas regras) */
+        var v = await F.getDoc(D('vinculos', uid));
+        if (v.exists()) s = await F.getDoc(D('usuarios', v.data().perfil));
+        else s = await F.getDoc(D('usuarios', uid));
         if (!s.exists()) { PID = null; return null; }
         PID = s.id;
         return Object.assign({ uid: s.id, authUid: uid }, s.data());
