@@ -17,10 +17,10 @@
   'use strict';
 
   var FIREBASE_CONFIG = {
-    apiKey: "AIzaSyApmPmqMNcEw7rPCIfh_CBCjfGLZBdG11Q",
-    authDomain: "infotratamento.firebaseapp.com",
-    projectId: "infotratamento",
-    appId: "1:972789860884:web:a89ec872539d2613173501"
+    apiKey: "AIzaSyDIi1Z4-4xDJ7G6fVcmbmJnd8aX4022gXk",
+    authDomain: "teste-infotratamento.firebaseapp.com",
+    projectId: "teste-infotratamento",
+    appId: "1:662089972473:web:d61716f85168a2ab4f0028"
   };
 
   var SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
