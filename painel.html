@@ -288,7 +288,7 @@ async function tabMensagens(box, editId){
         : `${i.over ? `<button class="btn ghost" data-sres="${esc(i.id)}" type="button">♻ Restaurar original</button>` : ''}<button class="btn ghost" data-shide="${esc(i.id)}" type="button">🙈 Ocultar</button>`}
       </div></div>`;
   box.innerHTML = `
-    <p class="au-sub" style="margin-top:0">O que for alterado aqui vale para <b>todas as pessoas que entraram com usuário</b>. Quem usa o site sem entrar vê apenas as mensagens originais do sistema.</p>
+    <p class="au-sub" style="margin-top:0">O que for alterado aqui vale para <b>todas as pessoas que entraram com usuário</b>. Quem usa o site sem logar no painel de controle vê apenas as mensagens originais do sistema.</p>
     <div class="au-msg" id="sMsg" role="alert"></div>
     <label class="au-f"><span>${ed ? 'Editar mensagem' : 'Nova mensagem para todos'} — categoria</span>
       <input class="au-plain" id="sGrp" maxlength="60" list="grpList" value="${ed ? esc(ed.grupo) : ''}" placeholder="Ex.: Informações">

@@ -419,9 +419,12 @@ const Msgs = (function () {
     const groups = base();
     const gOf = t => {
       let g = groups.find(x => x.title === t);
-      if (!g) { g = { title: t, items: [] }; groups.push(g); if (!META[t]) META[t] = { ico: '💬', c: PALETA[groups.length % PALETA.length] }; }
+      /* categoria nova da gestão entra no TOPO da lista de categorias */
+      if (!g) { g = { title: t, items: [] }; groups.unshift(g); if (!META[t]) META[t] = { ico: '💬', c: PALETA[groups.length % PALETA.length] }; }
       return g;
     };
+    /* processa do mais antigo ao mais novo; como cada inserção usa unshift (topo),
+       a mensagem mais recente da gestão termina como a primeira da categoria */
     Object.values(shared || {}).sort((a, b) => (a.atualizado || 0) - (b.atualizado || 0)).forEach(d => {
       const isBase = BASE_IDS.has(d.id);
       let from = null, it = null;
@@ -429,8 +432,8 @@ const Msgs = (function () {
       if (d.oculta) { if (from) from.items.splice(from.items.indexOf(it), 1); return; }
       if (isBase && it) {
         it.label = d.titulo; it.text = d.texto; it.over = true;
-        if (d.grupo && d.grupo !== from.title) { from.items.splice(from.items.indexOf(it), 1); gOf(d.grupo).items.push(it); }
-      } else gOf(d.grupo || 'Compartilhadas').items.push({ id: d.id, label: d.titulo, text: d.texto, novo: true });
+        if (d.grupo && d.grupo !== from.title) { from.items.splice(from.items.indexOf(it), 1); gOf(d.grupo).items.unshift(it); }
+      } else gOf(d.grupo || 'Compartilhadas').items.unshift({ id: d.id, label: d.titulo, text: d.texto, novo: true });
     });
     return groups.filter(g => g.items.length);
   }
