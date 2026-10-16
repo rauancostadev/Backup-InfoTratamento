@@ -62,3 +62,16 @@ EDITAR CONTEÚDO
 - Agenda da Radioterapia: SLOTS em radioterapia.html. Médicos: RAW em oncologia.html.
 - Quimioterapia: quimioData em quimioterapia.html. Telefones: DATA em telefonia.html.
 - Ultrassom: RAW em ultrassonografia.html.
+
+TRIAGEM (triagem.html + triagem.js)
+- Nova Solicitação: nome, CPF (máscara + dígitos verificadores), nascimento, contato, médico sugerido e anexos
+  (.pdf .jpg .jpeg .png, até 10 MB, máx. 10). Gera o protocolo LIGA-XXXXX e mostra o comprovante com "Copiar Protocolo".
+- Consultar Protocolo: busca direta pelo número. Link direto: triagem.html?protocolo=LIGA-XXXXX
+- Painel de Controle > Triagem (Gestor/Administrador): lista, busca, filtra, abre os detalhes (CPF, contato, anexos)
+  e altera o status (Pendente / Autorizado / Não Autorizado). O cartão mostra o nº de pendentes.
+- Firestore: triagens/{protocolo} (público p/ consulta) e triagens/{protocolo}/privado/dados (só gestão).
+PARA ATIVAR
+1. Publique o firestore.rules de novo.
+2. Firebase > Storage > "Começar"; publique o storage.rules.
+3. Confira STORAGE_BUCKET no início do triagem.js (gs://... mostrado na aba Arquivos do Storage).
+4. Copie triagem.html, triagem.js, painel.html, shell.js, index.html e styles.css para o repositório.

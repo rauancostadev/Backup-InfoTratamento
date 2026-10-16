@@ -183,5 +183,41 @@ service cloud.firestore {
         && usuario.matches('^[a-z0-9._-]{3,30}$')
         && request.resource.data.keys().hasOnly(['por', 'criado']);
     }
+
+    // ---------- TRIAGEM ----------
+    // triagens/{LIGA-XXXXX}: dados públicos da consulta (qualquer pessoa consulta pelo número do protocolo, mas ninguém lista).
+    // triagens/{id}/privado/dados: CPF, nascimento, contato e anexos (só a gestão lê).
+    match /triagens/{protocolo} {
+      allow get: if true;
+      allow list: if gestao();
+      allow create: if protocolo.matches('^LIGA-[A-HJ-NP-Z2-9]{5}$')
+        && request.resource.data.keys().hasOnly(['protocolo', 'nome', 'medico', 'status', 'criadoEm'])
+        && request.resource.data.protocolo == protocolo
+        && request.resource.data.status == 'Pendente'
+        && request.resource.data.criadoEm == request.time
+        && request.resource.data.nome is string && request.resource.data.nome.size() >= 3 && request.resource.data.nome.size() <= 120
+        && request.resource.data.medico is string && request.resource.data.medico.size() <= 120
+        && existsAfter(/databases/$(database)/documents/triagens/$(protocolo)/privado/dados);
+      // a gestão só muda o status (e a data da alteração)
+      allow update: if gestao() && mudou().hasOnly(['status', 'atualizadoEm'])
+        && request.resource.data.status in ['Pendente', 'Autorizado', 'Não Autorizado']
+        && request.resource.data.atualizadoEm == request.time;
+      allow delete: if admin();
+
+      match /privado/{doc} {
+        allow read: if gestao();
+        allow create: if doc == 'dados'
+          && !exists(/databases/$(database)/documents/triagens/$(protocolo))
+          && existsAfter(/databases/$(database)/documents/triagens/$(protocolo))
+          && request.resource.data.keys().hasOnly(['cpf', 'nascimento', 'contato', 'anexos'])
+          && request.resource.data.cpf is string && request.resource.data.cpf.size() <= 11
+          && request.resource.data.nascimento is string && request.resource.data.nascimento.size() <= 10
+          && request.resource.data.contato is string && request.resource.data.contato.size() <= 11
+          && request.resource.data.anexos is list && request.resource.data.anexos.size() <= 10;
+        allow update: if gestao() && mudou().hasOnly(['atualizadoPor'])
+          && request.resource.data.atualizadoPor is string && request.resource.data.atualizadoPor.size() <= 60;
+        allow delete: if admin();
+      }
+    }
   }
 }

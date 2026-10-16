@@ -572,3 +572,92 @@ html[data-tema="dark"] .aviso-txt b{color:#fbbf24}
 html[data-tema="dark"] .pn-card h2,html[data-tema="dark"] .pn-top b{color:#e2e8f0}
 
 @media(min-width:1001px){.shortcuts .shortcut:last-child:nth-child(3n+1){grid-column:2}}
+
+/* ============================ TRIAGEM (triagem.html e painel) ============================
+   Cores de status: amarelo = Pendente, verde = Autorizado, vermelho = Não Autorizado. */
+.tg-wrap{width:100%;max-width:900px;margin:-56px auto 0;padding:0 5%;position:relative;z-index:5}
+.tg-tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:var(--shadow);margin-bottom:18px}
+.tg-tabs button{flex:1;border:0;background:transparent;padding:12px 10px;border-radius:10px;font-weight:700;font-size:.92rem;color:var(--muted);transition:.2s}
+.tg-tabs button:hover{color:var(--text)}
+.tg-tabs button.active{background:var(--navy);color:#fff}
+.tg-block{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px 10px;margin-bottom:18px}
+.tg-block-head{display:flex;align-items:center;gap:10px;margin:0 0 16px;font-size:1.05rem;font-weight:800;color:var(--navy)}
+.tg-block-head::after{content:"";flex:1;height:1px;background:var(--line)}
+.tg-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 16px}
+.tg-req{color:var(--vermelho)}
+.tg-err{display:block;font-style:normal;font-size:.78rem;font-weight:600;color:var(--vermelho);min-height:0;margin-top:4px}
+.tg-err:empty{display:none}
+.au-plain.invalido{border-color:var(--vermelho)!important;box-shadow:0 0 0 3px rgba(198,40,40,.12)}
+.au-f input[type=date].au-plain{min-height:46px}
+.tg-hint{margin:-6px 0 14px;font-size:.85rem;color:var(--muted)}
+.tg-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.tg-drop{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:26px 16px;border:2px dashed #cbd5e1;border-radius:14px;background:var(--bg);cursor:pointer;font-size:.92rem;color:var(--muted);transition:.2s}
+.tg-drop b{color:var(--azul)}
+.tg-drop small{font-size:.75rem;font-weight:700;letter-spacing:.06em}
+.tg-drop-ico{font-size:1.8rem}
+.tg-drop:hover,.tg-drop.over{border-color:var(--azul);background:rgba(26,79,136,.06)}
+.tg-file:focus-visible + .tg-drop{outline:3px solid rgba(26,79,136,.4);outline-offset:2px}
+.tg-files{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.tg-file-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--card)}
+.tg-file-ico{font-size:1.3rem}
+.tg-file-nome{flex:1;min-width:0;font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tg-file-tam{font-size:.78rem;font-weight:700;color:var(--muted);white-space:nowrap}
+.tg-file-x{border:0;width:28px;height:28px;border-radius:50%;background:#f1f5f9;color:var(--vermelho);font-size:1.1rem;font-weight:800;line-height:1}
+.tg-file-x:hover{background:#fdecea}
+.tg-files-sum{margin:8px 0 12px;font-size:.78rem;font-weight:700;color:var(--muted)}
+.tg-files-sum:empty{margin:0}
+.tg-actions{display:flex;justify-content:flex-end;margin-bottom:10px}
+.tg-submit{padding:13px 26px;font-size:.98rem;border-radius:12px}
+.tg-submit[disabled]{opacity:.7}
+.tg-busca{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:6px}
+.tg-proto-in{font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.tg-busca .tg-submit{margin-bottom:14px}
+
+/* selo de status */
+.tg-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;font-weight:800;font-size:.82rem;white-space:nowrap}
+.tg-badge i{font-style:normal;font-size:.8rem}
+.tg-badge small{font-weight:600;opacity:.85;font-size:.75rem}
+.tg-badge small::before{content:"· "}
+.tg-badge.pendente{background:#fff8e1;color:#8a5a00}
+.tg-badge.autorizado{background:var(--ok-bg);color:var(--verde)}
+.tg-badge.recusado{background:#fdecea;color:var(--vermelho)}
+
+/* resultado da consulta */
+.tg-res{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px;background:var(--card)}
+.tg-res-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px;background:var(--bg);border-bottom:1px solid var(--line)}
+.tg-res-head small{display:block;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.tg-res-head b{font-size:1.3rem;letter-spacing:.08em;color:var(--navy)}
+.tg-res-dl{margin:0;padding:6px 20px;display:grid;gap:0}
+.tg-res-dl div{padding:12px 0;border-bottom:1px solid var(--line)}
+.tg-res-dl div:last-child{border-bottom:0}
+.tg-res-dl dt{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.tg-res-dl dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+.tg-res footer{padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
+
+/* comprovante (modal) */
+.tg-ok{text-align:center}
+.tg-ok-lbl{margin:4px 0 8px;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.tg-proto{font-size:2rem;font-weight:800;letter-spacing:.12em;color:var(--navy);background:var(--bg);border:2px dashed var(--azul);border-radius:14px;padding:14px 10px;user-select:all}
+.tg-ok-meta{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
+.tg-ok-meta small{color:var(--muted);font-weight:600}
+
+/* lista do painel (admin) */
+.tg-item select.select{padding:8px 34px 8px 12px;font-size:.82rem}
+.tg-det{width:100%;margin-top:8px;padding:12px 14px;border-radius:12px;background:var(--bg);font-size:.86rem;display:grid;gap:6px}
+.tg-det a{color:var(--azul);font-weight:700;overflow-wrap:anywhere}
+.tg-det b{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:560px){.tg-block{padding:18px 16px 6px}.tg-tabs button{font-size:.82rem;padding:11px 6px}.tg-proto{font-size:1.5rem}.tg-busca .tg-submit{width:100%;margin-bottom:0}}
+
+/* painel: o 7º cartão fica centralizado */
+@media(min-width:641px){.pn-grid .pn-card:last-child:nth-child(3n+1){grid-column:2}}
+@media(max-width:640px){.pn-grid .pn-card:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc(50% - 7px)}}
+
+/* tema escuro */
+html[data-tema="dark"] .tg-badge.pendente{background:#4a3a0c;color:#fde68a}
+html[data-tema="dark"] .tg-badge.autorizado{background:#16351b;color:#86efac}
+html[data-tema="dark"] .tg-badge.recusado{background:#4a1d1d;color:#fca5a5}
+html[data-tema="dark"] .tg-block-head,html[data-tema="dark"] .tg-res-head b,html[data-tema="dark"] .tg-proto{color:#e2e8f0}
+html[data-tema="dark"] .tg-drop{border-color:#475569}
+html[data-tema="dark"] .tg-file-x{background:#334155}
+html[data-tema="dark"] .tg-tabs button.active{background:#2563eb}
+html[data-tema="dark"] .tg-drop b,html[data-tema="dark"] .tg-det a{color:#7db3ee}

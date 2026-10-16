@@ -1,0 +1,16 @@
+rules_version = '2';
+// Firebase Storage > Regras > Publicar.
+// Qualquer pessoa pode ENVIAR anexos da triagem (PDF/JPG/PNG até 10 MB) em triagens/{protocolo}/...
+// Ninguém lista nem sobrescreve. O link de download (com token) fica salvo em triagens/{id}/privado/dados,
+// que só a gestão lê; por isso a leitura direta pelas regras fica fechada.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /triagens/{protocolo}/{arquivo} {
+      allow read: if false;
+      allow create: if protocolo.matches('^LIGA-[A-HJ-NP-Z2-9]{5}$')
+        && request.resource.size > 0 && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType.matches('application/pdf|image/jpeg|image/png');
+      allow update, delete: if false;
+    }
+  }
+}
