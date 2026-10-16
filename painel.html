@@ -174,7 +174,7 @@ function tabPerfil(box){
     <div class="au-f"><span>Usuário (para entrar)</span><b>${esc(Core.usuarioDe(p))}</b></div>
     <label class="au-f"><span>Nome de exibição</span><input class="au-plain" id="fNome" maxlength="40" value="${esc(p.nome || '')}" placeholder="Ex.: Maria"></label>
     <p class="au-note" style="text-align:left;margin:-8px 0 12px">O nome aparece no topo do site e substitui o campo <code>{operador}</code> nas mensagens prontas.</p>
-    <label class="au-f"><span>E-mail (opcional)</span><input class="au-plain" id="fMail" type="email" maxlength="120" value="${esc(p.email || '')}" placeholder="Só para contato; não é usado para entrar"></label>
+    <label class="au-f"><span>E-mail (opcional)</span><input class="au-plain" id="fMail" type="email" maxlength="120" value="${esc(p.email || '')}""></label>
     <button class="btn" id="fSave" type="button">💾 Salvar dados</button>
     <hr class="au-sep" style="margin-top:18px">
     <div class="au-f"><span>Tema</span><div class="au-panel-tabs" style="margin:0">
