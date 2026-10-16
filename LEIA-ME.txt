@@ -2,82 +2,63 @@ CENTRAL DE MARCAÇÃO - Liga Contra o Câncer
 
 COMO PUBLICAR
 1. Copie TODOS os arquivos desta pasta para o seu repositório (GitHub Pages),
-   substituindo os antigos. Podem manter os nomes iguais.
-2. Os arquivos styles.css e shell.js precisam ficar na MESMA pasta das páginas.
-   O shell.js monta o topo, o menu lateral e o rodapé de todas as páginas.
+   substituindo os antigos.
+2. styles.css, shell.js, core.js e mensagens.js precisam ficar na MESMA pasta das páginas.
+3. Publique de novo o firestore.rules (Firebase > Firestore > Regras > Publicar).
+   SEM as regras novas o login e a senha temporária não funcionam.
 
-COMO EDITAR
-- Menu do site (incluir/retirar página): lista PAGES no início do shell.js.
-- Cores e arredondamento de todo o site: bloco :root no início do styles.css.
-- Agenda da Radioterapia: lista SLOTS dentro do radioterapia.html.
-- Médicos por tumor: objeto RAW dentro do oncologia.html.
-- Protocolos de quimioterapia: objeto quimioData dentro do quimioterapia.html.
-- Respostas prontas: GROUPS (botões) e TEXTOS (conteúdo) dentro do anotacoes.html.
-- Telefones: lista DATA dentro do telefonia.html.
-- Exames de ultrassom: lista RAW dentro do ultrassonografia.html.
+ARQUIVOS
+- index.html ... página inicial
+- anotacoes.html ... mensagens prontas (ABERTA A TODOS, sem login)
+- painel.html ... Painel de Controle (login por USUÁRIO)
+- core.js ... login, banco de dados (Firebase), perfis, avisos e título piscante
+- mensagens.js ... mensagens prontas padrão (GROUPS, TEXTOS, META)
+- shell.js ... topo, menu lateral e rodapé (lista PAGES para incluir/retirar páginas)
+- styles.css, firestore.rules, demais páginas (oncologia, quimioterapia, radioterapia,
+  ultrassonografia, telefonia)
 
-O styles.css antigo foi substituído por completo; as páginas novas não
-dependem de nenhuma regra dele.
+PAINEL DE CONTROLE (painel.html)
+Link no menu lateral, no topo, no rodapé e na página inicial de todo o site.
+Cartões, nesta ordem: Perfil > Mensagens > Senha > Backup > Usuários > Avisos.
+- Mensagens, Usuários e Avisos aparecem só para Gestor e Administrador.
+- "Mensagens" (antes "Respostas"): edita as mensagens prontas de quem entrou com usuário.
+- "Avisos" (antes "Mensagem"): aviso em tempo real. Aparece no topo para quem entrou na conta
+  e está com o site aberto; se a pessoa estiver em outra aba/janela, o título da aba pisca
+  entre o título original e "📢 Aviso da gestão!" até ela voltar.
 
-LOGIN, PAINEL DE CONTROLE E ANOTAÇÕES POR USUÁRIO (anotacoes.html)
-A página pede e-mail e senha. Cada pessoa tem suas anotações (aparecem como a
-categoria "Minhas Anotações", junto das respostas prontas) e um painel com
-"Alterar senha" e "Sair". Regra da senha: mínimo 8 caracteres, com letras,
-números e caractere especial.
+LOGIN POR USUÁRIO
+- Entra-se com USUÁRIO e senha (3 a 30 caracteres: a-z, 0-9, ponto, hífen, sublinhado).
+- E-mail é opcional (só contato, no Perfil). Por dentro o Firebase usa "usuario@<seu-dominio>".
+- Quem já tinha conta com e-mail: na primeira vez digite o e-mail antigo no campo Usuário.
+  A conta passa a ter usuário (começo do e-mail). Só depois disso dá para gerar senha temporária.
+- Autorização de novas contas agora é POR USUÁRIO (Painel > Usuários > Quem pode criar conta).
+  Os e-mails autorizados antigos deixam de valer: autorize os usuários de novo.
+- A primeira conta criada vira ADMINISTRADOR (criador).
 
-VINCULAR O BANCO DE DADOS (Firebase, gratuito, funciona no GitHub Pages)
-1. Em https://console.firebase.google.com crie um projeto.
-2. Build > Authentication > Começar > ative "E-mail/senha".
-   (Em Configurações > Política de senha, você pode exigir também no servidor.)
-3. Build > Firestore Database > Criar banco de dados.
-4. Firestore > Regras: cole o conteúdo do arquivo firestore.rules e publique.
-5. Configurações do projeto > Seus aplicativos > </> (Web): copie apiKey,
-   authDomain, projectId e appId e cole em FIREBASE_CONFIG, no fim do
-   anotacoes.html.
-6. Authentication > Configurações > Domínios autorizados: adicione o domínio
-   do seu GitHub Pages (seuusuario.github.io).
-Sem FIREBASE_CONFIG preenchido a página funciona em MODO DE TESTE LOCAL
-(contas só no navegador, apenas para testar).
+ESQUECI MINHA SENHA (senha temporária LIGA@123)
+1. Na tela de entrada a pessoa digita o usuário e clica "Esqueci minha senha": o pedido aparece
+   para a gestão (aviso vermelho no cartão Usuários).
+2. Gestor/Administrador: Painel > Usuários > localiza o usuário > "🔑 Senha temporária".
+   A senha antiga deixa de valer e a senha passa a ser LIGA@123 (vale 24 h para a primeira entrada).
+3. A pessoa entra com LIGA@123 e o painel pede para definir uma senha nova.
+Limites: o criador do sistema não pode ser redefinido por outra pessoa (se ele esquecer a senha,
+use o console do Firebase > Authentication). Gestor não redefine administradores.
 
-PERFIS (ADMINISTRADOR, GESTOR E OPERADOR) E RESPOSTAS COMPARTILHADAS
-- A PRIMEIRA conta criada no sistema vira ADMINISTRADOR (o "criador"). Crie a sua
-  conta antes de passar o link para a equipe. O criador nunca pode ser rebaixado,
-  desativado nem excluído por outra pessoa.
-- Administrador e Gestor têm os mesmos acessos: editam, ocultam, criam e restauram as
-  respostas compartilhadas (valem para todos), autorizam e-mails, ativam/desativam
-  usuários e mudam o perfil entre operador e gestor. (Painel > abas "Respostas" e "Usuários".)
-- Diferença: só o Administrador enxerga o perfil de Administrador e consegue conceder
-  esse perfil a outra pessoa. O Gestor não vê administradores na lista, não vê a
-  opção "Administrador" e não consegue alterar um (o banco também bloqueia isso).
-- Operador: usa as respostas compartilhadas e tem as próprias anotações, favoritos,
-  contadores de uso, backup e tema.
-- Quem pode criar conta: por padrão só e-mails autorizados (aba Usuários). Dá para
-  abrir o cadastro a qualquer pessoa na mesma aba.
-- As respostas que estão no código (GROUPS e TEXTOS) continuam sendo a base. O que a
-  gestão muda fica salvo no banco e se sobrepõe a elas; "Restaurar" volta ao código.
-- Campos variáveis: escreva {nome} no texto e a página pergunta o valor ao copiar.
-  {operador} (nome do perfil) e {data} (hoje) entram sozinhos.
+ANOTAÇÕES (anotacoes.html)
+- Visitante: vê as mensagens padrão; "＋ Nova anotação" apenas orienta a entrar pelo Painel.
+- Quem entrou: anotações próprias, favoritos, contadores e ajustes feitos pela gestão.
+- "📊 Uso Geral": mais usadas e zerar contadores.
 
-ANOTAÇÕES x PAINEL DE CONTROLE
-- "＋ Nova anotação" (e os botões ✏️ ⧉ 🗑 dos cards) abre só a janela de Anotações.
-- "⚙️ Painel de controle" (e o botão com o seu nome no topo) abre o restante:
-  Perfil, Uso, Senha, Backup e, para Gestor/Administrador, Respostas, Usuários e Mensagem.
+VINCULAR O BANCO DE DADOS (Firebase, gratuito)
+1. console.firebase.google.com > criar projeto.
+2. Authentication > ative "E-mail/senha" (é usado por dentro; ninguém digita e-mail).
+3. Firestore Database > criar banco. Regras: cole firestore.rules e publique.
+4. Cole apiKey, authDomain, projectId e appId em FIREBASE_CONFIG, no início do core.js.
+5. Authentication > Configurações > Domínios autorizados: adicione seuusuario.github.io.
+Sem FIREBASE_CONFIG preenchido a página roda em MODO DE TESTE LOCAL (só neste navegador).
 
-MENSAGEM PARA QUEM ESTÁ COM O SITE ABERTO (Gestor e Administrador)
-- Painel de controle > aba "Mensagem". O texto (até 500 caracteres) aparece na hora, no
-  topo da tela de todas as pessoas que estão com o site aberto, com o botão "Entendi".
-  Quem abrir o site depois não recebe. Quem envia não vê a própria mensagem.
-- Precisa das regras novas do firestore.rules (coleção "avisos").
-
-TEMA CLARO / ESCURO
-- O botão 🌙/☀️ no topo de todas as páginas troca o tema. A escolha fica salva no
-  navegador e é mantida ao atualizar a página (e entre as páginas do site).
-- As cores do tema escuro ficam no fim do styles.css (bloco "TEMA ESCURO").
-
-IMPORTANTE AO ATUALIZAR: publique de novo o conteúdo do firestore.rules
-(Firestore > Regras > Publicar). Sem as regras novas o login mostra
-"Sem permissão no banco de dados".
-Se o banco já tiver o documento config/geral criado por uma versão anterior, apague a
-coleção "config" e a coleção "usuarios" no console do Firebase (ou ajuste o campo
-"papel" da sua conta para admin e crie o campo criadorUid em config/geral com o seu uid),
-para a sua conta virar Administrador no próximo login.
+EDITAR CONTEÚDO
+- Mensagens padrão: mensagens.js. Menu: PAGES no shell.js. Cores: :root no styles.css.
+- Agenda da Radioterapia: SLOTS em radioterapia.html. Médicos: RAW em oncologia.html.
+- Quimioterapia: quimioData em quimioterapia.html. Telefones: DATA em telefonia.html.
+- Ultrassom: RAW em ultrassonografia.html.

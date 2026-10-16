@@ -1,92 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+<script>try{if(localStorage.getItem('an_tema')==='dark')document.documentElement.setAttribute('data-tema','dark')}catch(e){}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anotações • Central de Marcação</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<!-- LOGIN: esconde o conteúdo até a pessoa entrar (removido pelo script de login no fim da página) -->
-<script>document.documentElement.classList.add('auth-lock');try{if(localStorage.getItem('an_tema')==='dark')document.documentElement.setAttribute('data-tema','dark')}catch(e){}</script>
 <style>
-/* ============ LOGIN / PAINEL DE CONTROLE ============ */
-html.auth-lock .hero, html.auth-lock #conteudo{display:none}
-.user-btn{margin-right:10px;background:#fff;color:var(--navy);border:1px solid var(--line);padding:9px 14px;border-radius:10px;font-weight:700;font-size:.85rem;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:.2s}
-.user-btn:hover{border-color:var(--azul);color:var(--azul)}
-.user-btn + .menu-btn{margin-left:0}
-@media(max-width:680px){.user-btn{max-width:56px;padding:9px 12px}.user-btn span{display:none}}
-.au-gate{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px}
-.au-card{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:28px 26px}
-.au-card h1{margin:0 0 4px;font-size:1.35rem;color:var(--navy);font-weight:800}
-.au-card .au-sub{margin:0 0 18px;color:var(--muted);font-size:.88rem}
-.au-tabs{display:flex;gap:4px;background:#eef2f7;padding:4px;border-radius:12px;margin-bottom:18px}
-.au-tabs button{flex:1;border:0;background:transparent;padding:9px;border-radius:9px;font-weight:700;font-size:.85rem;color:var(--muted)}
-.au-tabs button.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(15,23,42,.1)}
-.au-f{display:block;margin-bottom:14px}
-.au-f > span{display:block;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
-.au-in{position:relative}
-.au-in input,.au-f textarea,.au-f input.au-plain{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font:inherit;font-size:.95rem;outline:none;transition:.2s}
-.au-in input{padding-right:46px}
-.au-in input:focus,.au-f textarea:focus,.au-f input.au-plain:focus{border-color:var(--azul);box-shadow:0 0 0 4px rgba(26,79,136,.12)}
-.au-f textarea{min-height:130px;resize:vertical}
-.au-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;font-size:1rem;padding:6px 8px;opacity:.6}
-.au-eye:hover{opacity:1}
-.au-rules{list-style:none;margin:-4px 0 14px;padding:0;font-size:.8rem;color:var(--muted);display:grid;gap:3px}
-.au-rules li::before{content:"○ ";color:#cbd5e1}
-.au-rules li.ok{color:var(--verde);font-weight:600}
-.au-rules li.ok::before{content:"✔ ";color:var(--verde)}
-.au-msg{display:none;margin:0 0 14px;padding:10px 12px;border-radius:10px;font-size:.85rem;font-weight:600}
-.au-msg.show{display:block}
-.au-msg.err{background:#fdecea;color:var(--vermelho)}
-.au-msg.ok{background:var(--ok-bg);color:var(--verde)}
-.au-msg.warn{background:#fff8e1;color:#8a5a00}
-.au-go{width:100%;padding:12px;font-size:.95rem;border-radius:12px}
-.au-go[disabled]{opacity:.6;pointer-events:none}
-.au-link{display:block;margin:14px auto 0;background:none;border:0;color:var(--azul);font-weight:700;font-size:.83rem;text-decoration:underline}
-.au-note{margin-top:14px;font-size:.76rem;color:var(--muted);text-align:center}
-.au-panel-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
-.au-panel-tabs button{border:1px solid var(--line);background:#fff;color:var(--muted);padding:8px 14px;border-radius:999px;font-weight:700;font-size:.83rem}
-.au-panel-tabs button.active{background:var(--navy);border-color:var(--navy);color:#fff}
-.au-list{display:grid;gap:8px;margin-bottom:18px}
-.au-item{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
-.au-item b{display:block;font-size:.9rem;color:var(--navy);overflow-wrap:anywhere}
-.au-item small{color:var(--muted);display:block;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.au-item .au-acts{display:flex;gap:6px;flex-shrink:0}
-.au-empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed #cbd5e1;border-radius:12px;font-weight:600;font-size:.88rem}
-.au-sep{border:0;border-top:1px solid var(--line);margin:4px 0 16px}
-.btn.danger{background:var(--vermelho)}
-.btn.danger:hover{background:#8e1c1c}
 .nova-nota{margin-left:auto}
-.painel-btn{margin-left:0}
-.uso-pill{font-size:.7rem;font-weight:800;color:var(--muted);background:#eef2f7;padding:2px 8px;border-radius:999px;white-space:nowrap;align-self:flex-start}
-.btn.fav.on{color:#f59e0b;border-color:#f59e0b}
-.au-item{flex-wrap:wrap}
-.au-main{flex:1;min-width:140px}
-.au-item .au-acts{flex-wrap:wrap}
-.au-item.drag{opacity:.45}
-.au-grip{cursor:grab;color:var(--muted);user-select:none;letter-spacing:-2px;padding:0 2px}
-.au-cat{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 8px}
-.au-bar{display:grid;grid-template-columns:minmax(120px,220px) 1fr 36px;gap:10px;align-items:center;margin-bottom:8px;font-size:.85rem}
-.au-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.au-bar div{background:#eef2f7;border-radius:999px;height:10px;overflow:hidden}
-.au-bar i{display:block;height:100%;background:var(--azul);border-radius:999px}
-.au-bar b{text-align:right;color:var(--navy)}
-.au-tags{display:flex;flex-wrap:wrap;gap:6px;font-size:.8rem}
-.au-tags span{background:#eef2f7;color:var(--text);padding:4px 10px;border-radius:999px;font-weight:600}
-.au-tags span button{border:0;background:transparent;color:var(--vermelho);font-weight:800;padding:0 0 0 4px}
-.au-check{display:inline-flex;gap:8px;align-items:center;font-size:.85rem;font-weight:600}
-.btn[disabled]{opacity:.45;pointer-events:none}
-.au-sub code{background:#eef2f7;padding:1px 5px;border-radius:5px}
-
-
-.aviso-bar{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:4000;width:min(580px,calc(100% - 24px));display:flex;gap:12px;align-items:flex-start;background:#fff8e1;color:#4a3a0c;border:1px solid #f5b942;border-left:6px solid var(--laranja);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-lg);animation:avisoIn .35s ease}
-.aviso-ico{font-size:1.5rem;line-height:1}
-.aviso-txt{flex:1;min-width:0;font-size:.92rem;white-space:pre-wrap;overflow-wrap:anywhere}
-.aviso-txt b{display:block;margin-bottom:2px;color:#8a5a00}
-@keyframes avisoIn{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}
-html[data-tema="dark"] .aviso-bar{background:#3b2f0e;color:#fde68a;border-color:#8a6a1c;border-left-color:var(--laranja)}
-html[data-tema="dark"] .aviso-txt b{color:#fbbf24}
 </style>
 </head>
 <body data-page="anotacoes">
@@ -96,7 +19,7 @@ html[data-tema="dark"] .aviso-txt b{color:#fbbf24}
     <div>
       <span class="eyebrow">📋 Anotações</span>
       <h1>Mensagens Prontas</h1>
-      <p>Clique em uma resposta para copiá-la na hora. Use <b>Ver</b> para conferir como ela aparece no WhatsApp antes de enviar.</p>
+      <p>Clique em uma mensagem para copiá-la na hora. Use <b>Ver</b> para conferir como ela aparece no WhatsApp antes de enviar.</p>
     </div>
   </div>
 </section>
@@ -104,14 +27,14 @@ html[data-tema="dark"] .aviso-txt b{color:#fbbf24}
 <main class="wrap" id="conteudo">
 
   <div class="kpis">
-    <div class="kpi"><div class="kpi-ico">💬</div><div><b id="kTotal">0</b><span>Respostas</span></div></div>
+    <div class="kpi"><div class="kpi-ico">💬</div><div><b id="kTotal">0</b><span>Mensagens</span></div></div>
     <div class="kpi"><div class="kpi-ico">🗂️</div><div><b id="kGroups">0</b><span>Categorias</span></div></div>
     <div class="kpi"><div class="kpi-ico">🕘</div><div><b id="kRecent">0</b><span>Usadas recentemente</span></div></div>
     <div class="kpi"><div class="kpi-ico">⏰</div><div><b class="txt" id="kNow">—</b><span>Sugerida agora</span></div></div>
   </div>
 
   <div class="toolbar">
-    <div class="search"><input type="search" id="busca" placeholder="Buscar resposta (título ou conteúdo)..." autocomplete="off" aria-label="Buscar resposta"></div>
+    <div class="search"><input type="search" id="busca" placeholder="Buscar mensagem (título ou conteúdo)..." autocomplete="off" aria-label="Buscar mensagem"></div>
     <div class="chips" id="chips"></div>
   </div>
 
@@ -123,410 +46,9 @@ html[data-tema="dark"] .aviso-txt b{color:#fbbf24}
 </main>
 
 <script src="shell.js"></script>
+<script src="mensagens.js"></script>
+<script src="core.js"></script>
 <script>
-/* ============ DADOS ============
-   GROUPS: categorias e seus botões (id + rótulo)
-   TEXTOS: o texto de cada resposta (a chave é o id). *texto* vira negrito no WhatsApp. */
-const GROUPS = [
- {
-  "title": "Saudações",
-  "items": [
-   {
-    "id": "bomdia",
-    "label": "Bom Dia"
-   },
-   {
-    "id": "boatarde",
-    "label": "Boa Tarde"
-   },
-   {
-    "id": "boanoite",
-    "label": "Boa Noite"
-   }
-  ]
- },
- {
-  "title": "Informações",
-  "items": [
-   {
-    "id": "entradaregula",
-    "label": "Passo a Passo do Regula"
-   },
-   {
-    "id": "preencherinfopaciente",
-    "label": "Preencher Informações do Paciente"
-   },
-   {
-    "id": "solicitacao",
-    "label": "Solicitação da Triagem"
-   },
-   {
-    "id": "hematologiaunimed",
-    "label": "Hematologia Unimed"
-   },
-   {
-    "id": "hematonaoautorizado",
-    "label": "Hematologia Não Autorizada"
-   },
-   {
-    "id": "solicitarpendencia",
-    "label": "Solicitar Pendência"
-   }
-  ]
- },
- {
-  "title": "Contatos",
-  "items": [
-   {
-    "id": "contatosecretariasus",
-    "label": "Secretária SUS"
-   },
-   {
-    "id": "contatosecretariaconv",
-    "label": "Secretária Convênio"
-   },
-   {
-    "id": "secretariaradio",
-    "label": "Secretária Radio"
-   },
-   {
-    "id": "secretariatelefonia",
-    "label": "Secretária pela Telefonia"
-   },
-   {
-    "id": "contatoquimioterapiasus",
-    "label": "Contato Quimioterapia SUS"
-   },
-   {
-    "id": "contatoquimioterapiaconvenio",
-    "label": "Contato Quimioterapia Convênio"
-   },
-   {
-    "id": "contatopediatria",
-    "label": "Contato Pediatria"
-   },
-   {
-    "id": "contatocentraldemarcaçao",
-    "label": "Contato Central de Marcação"
-   },
-   {
-    "id": "semvagaradio",
-    "label": "Radioterapia Sem Vagas"
-   }
-  ]
- },
- {
-  "title": "Valores de Consultas",
-  "items": [
-   {
-    "id": "consultahematologia",
-    "label": "Valor Consulta Hematologia"
-   },
-   {
-    "id": "consultaoncologia",
-    "label": "Valor Consulta Oncologia"
-   },
-   {
-    "id": "consultaradio",
-    "label": "Valor Consulta Radioterapia"
-   },
-   {
-    "id": "consultaoncogenetica",
-    "label": "Valor Consulta Oncogenética"
-   }
-  ]
- },
- {
-  "title": "Informações 1ª Vez",
-  "items": [
-   {
-    "id": "hematoconvenio",
-    "label": "Hematologia Convênio"
-   },
-   {
-    "id": "hematosus",
-    "label": "Hematologia SUS"
-   },
-   {
-    "id": "hematoparticular",
-    "label": "Hematologia Particular"
-   },
-   {
-    "id": "oncoconvenio",
-    "label": "Oncologia Convênio"
-   },
-   {
-    "id": "oncosus",
-    "label": "Oncologia SUS"
-   },
-   {
-    "id": "oncoparticular",
-    "label": "Oncologia Particular"
-   },
-   {
-    "id": "radioconvenio",
-    "label": "Radioterapia Convênio"
-   },
-   {
-    "id": "radiosus",
-    "label": "Radioterapia SUS"
-   },
-   {
-    "id": "radioparticular",
-    "label": "Radioterapia Particular"
-   }
-  ]
- },
- {
-  "title": "Preparos das Consultas",
-  "items": [
-   {
-    "id": "consultasustratamento",
-    "label": "Consulta SUS - Tratamento"
-   },
-   {
-    "id": "consultasusinterior",
-    "label": "Consulta SUS - Interior"
-   },
-   {
-    "id": "consultasusnatal",
-    "label": "Consulta SUS - Natal"
-   },
-   {
-    "id": "consultaparticular",
-    "label": "Consulta Particular"
-   },
-   {
-    "id": "consultaconvenio",
-    "label": "Consulta Convênio"
-   }
-  ]
- },
- {
-  "title": "Finalizar atendimento",
-  "items": [
-   {
-    "id": "agendamentofeito",
-    "label": "Agendamento Realizado"
-   },
-   {
-    "id": "finalizandoexpediente",
-    "label": "Finalizando Expediente"
-   },
-   {
-    "id": "agradecimentonasemana",
-    "label": "Agradecer na Semana"
-   },
-   {
-    "id": "agradecimentofinaldesemana",
-    "label": "Agradecer Final de Semana"
-   }
-  ]
- }
-];
-const TEXTOS = {
-    bomdia: `Bom dia!
-Me chamo Rauan, atendente nas especialidades de Oncologia Clínica e Hematologia pela unidade de Natal.
-
-Para iniciarmos, me informe seu nome e se a consulta seria por convênio, particular ou pelo SUS?`,
-
-    boatarde: `Boa tarde!
-Me chamo Rauan, atendente nas especialidades de Oncologia Clínica e Hematologia pela unidade de Natal.
-
-Para iniciarmos, me informe seu nome e se a consulta seria por convênio, particular ou pelo SUS?`,
-
-    boanoite: `Boa noite!
-Me chamo Rauan, atendente nas especialidades de Oncologia Clínica e Hematologia pela unidade de Natal.
-
-Para iniciarmos, me informe seu nome e se a consulta seria por convênio, particular ou pelo SUS?`,
-
-    solicitacao: `Muito obrigado! Segue abaixo as orientações:
-
-*As informações foram encaminhadas ao setor responsável para ser realizada a triagem.* ✅
-
-- Favor aguardar a análise do médico.
-- Após a análise, retornaremos o contato sobre a liberação da consulta.
-
-Obs: Caso ultrapasse o prazo de 72h úteis e não tivermos mantido contato com o paciente, favor nos contate imediatamente.`,
-
-    agendamentofeito: `*Confirmado o agendamento* ✅
-
-Teria dúvidas ou posso lhe ajudar em algo mais? 😊`,
-
-    agradecimentonasemana: `Meus agradecimentos e lhe desejo uma ótima e abençoada semana! 🙏`,
-
-    agradecimentofinaldesemana: `Meus agradecimentos e lhe desejo um ótimo e abençoado final de semana! 🙏`,
-
-    agendamentofeito: `*Confirmado o agendamento* ✅
-
-Teria dúvidas ou posso lhe ajudar em algo mais? 😊`,
-
-    preencherinfopaciente: `*Favor preencher as seguintes informações:*
- 
-- *Nome completo:* 
-- *CPF:* 
-- *Data de nascimento:* 
-- *Número de telefone:* 
-
-- *Foi sugerido algum médico?*`,
-
-    contatosecretariaconv: `Vitória ou Jéssica
-*(84) 99413-9912* - Secretária da Oncologia/Hematologia Convênio (WhatsApp)
-
-Segunda a sexta
-*Horário de atendimento:* 07:00 às 17:00`,
-
-    contatosecretariasus: `*(84) 4009-5573* - Secretária da Oncologia/Hematologia SUS (Apenas via Ligação)
-
-Segunda a sexta
-*Horário de atendimento:* 08:00 às 16:00`,
-
-    contatoquimioterapiasus: `*(84) 4009-5583* - Quimioterapia SUS (Apenas via WhatsApp)
-
-Segunda a sexta
-*Horário de atendimento:* 08:00 às 16:00`,
-
-    contatoquimioterapiaconvenio: `*(84) 98843-3323* - Quimioterapia Convênio (Apenas via WhatsApp)
-
-Segunda a sexta
-*Horário de atendimento:* 08:00 às 16:00`,
-
-    hematonaoautorizado: `O motivo do meu contato é a respeito da solicitação da triagem, os exames foram apresentados aos médicos hematologista e a consulta não foi liberada.
-
-Por sermos um hospital voltado ao diagnóstico de neoplasias malignas, a triagem realizada não identificou achados sugestivos de malignidade.
-
-Contamos com a sua compreensão e qualquer dúvida, pode retornar o contato conosco, estamos à disposição.`,
-
-    solicitarpendencia: `ENCAIXE
-
-NOME: 
-CPF: 
-CTT: 
-
-Motivo: `,
-
-    contatopediatria: `Atendimento do setor pediátrico via WhatsApp:
-*(84) 4009-5501*
-Selecionar a opção 5 - Hospital Pediatria
-
-Ou via ligação, através do número:
-*(84) 4009-5688* - Pediatria
-
-Segunda a sexta
-*Horário de atendimento:* 08:00 às 16:00`,
-
-    contatocentraldemarcaçao: `Atendimento via WhatsApp: 
-*(84) 4009-5601*
-Preencher as informações e ao solicitar a especialidade escrever "Cirurgião Oncológico"
-
-Ou via ligação, através do número:
-*(84) 4009-5600* - Central de Marcação
-
-Segunda a sexta
-*Horário de atendimento:* 07:00 às 18:00`,
-
-    entradaregula: `*Segue o passo a passo para dar entrada na autorização:*
-
-1º Passo: Se dirigir na secretaria de saúde do município, portando o documento pessoal com foto e CPF.
-2º Passo: Solicitando inserir a consulta, informando a especialidade, nome do médico e os dados do paciente.
-3º Passo: Aguardar 20 dias. Após o prazo, retorne o contato conosco para liberarmos a autorização.
-
-Caso a secretaria de saúde tenha dúvidas, favor, manter contato diretamente com a Sesap/RN e serão orientados.`,
-
-    secretariatelefonia: `*Setor de Telefonia:*
-Entrar em contato via ligação através do número *(84) 4009-5501*, selecionar a *opção 9* para falar com o setor de *telefonia* e em seguida, solicitar falar com a secretária
- 
-Segunda a sexta
-*Horário de atendimento:* 08:00 às 16:00`,
-
-    finalizandoexpediente: `Estamos finalizando as nossas operações de atendimento e contamos com sua compreensão.
-    
-Favor nos contatar amanhã para darmos continuidade ao atendimento. Tenha uma ótima noite!`,
-
-    secretariaradio: `*(84) 4009-5575* - Secretária Radioterapia (Apenas via Ligação)
-*(84) 4009-7433* - Secretária Radioterapia (Apenas via Ligação)
-
-Segunda a sexta
-*Horário de atendimento:* 08:00 às 16:00`,
-
-   consultasustratamento: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
-   
-*Paciente deverá trazer no dia da consulta:*  
-- Documentos pessoais, comprovante de residência em seu nome, cartão do SUS atualizado do município em que reside, encaminhamento/ficha de referência e exames anteriores, caso tenha.
-
-*Observação:* Não precisa solicitar a autorização para esta consulta, pois o paciente segue em tratamento.`,
-
-    consultasusnatal: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
-    
-*Paciente deverá trazer no dia da consulta:*  
-- Documentos pessoais, comprovante de residência em seu nome, cartão do SUS atualizado do município de Natal, encaminhamento/ficha de referência e exames anteriores, caso tenha.`,
-
-    consultasusinterior: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
-
-*Paciente deverá trazer no dia da consulta:*  
-- Documentos pessoais, comprovante de residência em seu nome, cartão do SUS atualizado do município em que reside, encaminhamento/ficha de referência e exames anteriores, caso tenha.`,
-
-    consultaconvenio: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
-    
-*Paciente deverá trazer no dia da consulta:*  
-- Documentos pessoais e exames anteriores para mostrar (caso tenha);
-- Carteira do Convênio.
-
-*Observação:* Não esquecer de agendar o seu retorno após a consulta.`,
-
-    consultaparticular: `*ATENÇÃO:* Paciente deverá chegar 30 minutos antes para registrar o atendimento e receber as informações necessárias para realização deste procedimento.
-    
-*Paciente deverá trazer no dia da consulta:*  
-- Documentos pessoais e exames anteriores para mostrar (caso tenha);
-
-*Observação:* Não esquecer de agendar o seu retorno após a consulta.`,
-
-    consultaoncologia: `A consulta oncologista clínico tem o valor de R$ 450,00, pode parcelar em até 6 vezes, sem juros no cartão de crédito, com direito a um retorno de até 30 dias`,
-
-    consultahematologia: `A consulta hematologista tem o valor de R$ 450,00, pode parcelar em até 6 vezes, sem juros no cartão de crédito, com direito a um retorno de até 45 dias`,
-
-    consultaradio: `A consulta radioterapeuta tem o valor de R$ 250,00, pode parcelar em até 4 vezes, sem juros no cartão de crédito, com direito a um retorno de até 30 dias`,
-
-    consultaoncogenetica: `A consulta oncogeneticista tem o valor de R$ 500,00, pode parcelar em até 6 vezes, sem juros no cartão de crédito, com direito a um retorno de até 30 dias`,
-      
-    hematologiaunimed: `*Hematologia para adultos, convênio Unimed:*
-Não atende gestantes;
-É priorizado os pacientes oncológicos.
-
-Para passar pela triagem, se faz necessário nos enviar via WhatsApp:
-*Resultado do hemograma e o encaminhamento médico, caso tenha.*
-
-Encaminharemos a solicitação da triagem, a médica avaliará e retornaremos o contato para informar sobre a liberação da consulta.`,
-
-    semvagaradio: `Estamos sem vagas disponíveis, os agendamentos foram disponibilizados até o mês de agosto, porém todas as vagas já foram preenchidas.
-
-Em casos de urgências ou mostrar exames, poderá vir presencialmente na unidade do CECAN ou manter contato *via WhatsApp* com a secretária da radioterapia, através do número *(84) 4009-5581.*
-
-Segunda a sexta
-*Horário de atendimento:* 08:00 às 16:00`,
-
-    hematoconvenio: `Atendimentos por convênio com a hematologia, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado do *hemograma* ou *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
-    hematosus: `Atendimentos pelo SUS com a hematologia, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado da *biópsia* ou *hemograma* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
-    hematoparticular: `A consulta hematologista tem o valor de R$ 450,00, pode parcelar em até 6 vezes e o paciente tem direito ao retorno de até 45 dias`,
-      
-    oncoconvenio: `Atendimentos por convênio com a oncologia clínica, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado dos *exames de imagem* ou *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
-    oncosus: `Atendimentos pelo SUS com a oncologia clínica, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado da *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
-    oncoparticular: `Atendimentos via particular com a oncologia clínica, se faz necessário passar por uma triagem. Favor nos enviar por este canal de WhatsApp o resultado dos *exames de imagem* ou *biópsia* e, caso tenha, o *encaminhamento médico*. Após a análise dos médicos, a consulta poderá ser liberada.`,
-      
-    radioconvenio: `Atendimentos por convênio com a radioterapia, se faz necessário nos enviar via WhatsApp o resultado da *biópsia* e *encaminhamento médico* para passar pela triagem. Após a análise dos médicos, a consulta poderá ser liberada.`,
-    radiosus: `Atendimentos pelo SUS com a radioterapia, se faz necessário nos enviar via WhatsApp o resultado da *biópsia* e *encaminhamento médico* para passar pela triagem. Após a análise dos médicos, a consulta poderá ser liberada.`,
-    radioparticular: `Solicitar no grupo de 1ª vez da radioterapia, portando apenas o *encaminhamento médico*.`
-  };
-
-const META = {
-  'Saudações':              { ico:'👋', c:'#1a4f88' },
-  'Informações':            { ico:'ℹ️', c:'#00838f' },
-  'Contatos':               { ico:'📞', c:'#CC5500' },
-  'Valores de Consultas':   { ico:'💰', c:'#2e7d32' },
-  'Informações 1ª Vez':     { ico:'🆕', c:'#6a1b9a' },
-  'Preparos das Consultas': { ico:'🎒', c:'#c2185b' },
-  'Finalizar atendimento':  { ico:'✅', c:'#455a64' }
-};
 const meta = g => META[g] || { ico:'💬', c:'#1a4f88' };
 const cvars = g => `--c:${meta(g).c};--bg-c:${meta(g).c}1f`;
 
@@ -596,7 +118,7 @@ function render(){
       <div class="sec-head"><h2>${meta(g.title).ico} ${UI.esc(g.title)}</h2><span class="count-pill">${items.length}</span></div>
       <div class="tpl-grid">${items.map(card).join('')}</div>
     </section>`;
-  }).join('') || '<div class="nothing"><big>🔎</big>Nenhuma resposta encontrada</div>';
+  }).join('') || '<div class="nothing"><big>🔎</big>Nenhuma mensagem encontrada</div>';
   renderChips();
 }
 
@@ -633,277 +155,29 @@ render();
 
 <script>
 /* =====================================================================
-   LOGIN, PAINEL DE CONTROLE, PERFIS (OPERADOR / GESTOR) E RESPOSTAS COMPARTILHADAS
-   ---------------------------------------------------------------------
-   Banco de dados: Firebase (Authentication + Firestore). As chaves do projeto
-   ficam em FIREBASE_CONFIG. Com FIREBASE_CONFIG vazio, a página roda em MODO DE
-   TESTE LOCAL (tudo só neste navegador).
-
-   Perfis:  administrador = criador do sistema; tem tudo que o gestor tem e é o único
-                            que enxerga e concede o perfil de administrador;
-            gestor        = edita as respostas compartilhadas e gerencia usuários;
-            operador      = usa as respostas e tem as próprias anotações.
-   A PRIMEIRA conta criada no sistema vira ADMINISTRADOR automaticamente.
+   ANOTAÇÕES — parte que depende de quem entrou (a página é aberta a todos)
+   - Visitante: vê só as mensagens padrão. "＋ Nova anotação" explica como entrar e não cria nada.
+   - Quem entrou pelo Painel de Controle: tem as próprias anotações, favoritos, contadores e
+     as mensagens ajustadas pela gestão.
+   O login fica somente no painel.html.
    ===================================================================== */
 (function () {
 'use strict';
 
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyApmPmqMNcEw7rPCIfh_CBCjfGLZBdG11Q",
-  authDomain: "infotratamento.firebaseapp.com",
-  projectId: "infotratamento",
-  appId: "1:972789860884:web:a89ec872539d2613173501"
-};
-
-const GRUPO = 'Minhas Anotações';
-const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
 const q = (s, r) => (r || document).querySelector(s);
 const qa = (s, r) => [...(r || document).querySelectorAll(s)];
 const esc = UI.esc;
+const { showMsg, erroMsg } = Core;
+const B = () => Core.B;
+const P = () => Core.perfil;
+const GRUPO = 'Minhas Anotações';
 const FAV = '__fav';
 
-/* cópia das respostas originais do arquivo (a base que a gestão pode ajustar) */
-const BASE_GROUPS = JSON.parse(JSON.stringify(GROUPS));
-const BASE_TEXTOS = Object.assign({}, TEXTOS);
-const BASE_IDS = new Set(BASE_GROUPS.flatMap(g => g.items.map(i => i.id)));
+let notes = [], shared = {};
 
-/* ---------- regra da senha: mínimo 8, letras, números e caractere especial ---------- */
-const RULES = [
-  { t: 'Mínimo de 8 caracteres',  ok: p => p.length >= 8 },
-  { t: 'Contém letras',           ok: p => /\p{L}/u.test(p) },
-  { t: 'Contém números',          ok: p => /\d/.test(p) },
-  { t: 'Contém caractere especial (ex.: ! @ # $ % &)', ok: p => /[^\p{L}\d\s]/u.test(p) }
-];
-const pwValid = p => RULES.every(r => r.ok(p));
-const rulesHTML = () => '<ul class="au-rules">' + RULES.map(r => '<li>' + esc(r.t) + '</li>').join('') + '</ul>';
-function bindRules(input, list){
-  const upd = () => [...list.children].forEach((li, i) => li.classList.toggle('ok', RULES[i].ok(input.value)));
-  input.addEventListener('input', upd); upd();
-}
-
-const ERROS = {
-  'auth/invalid-credential': 'E-mail ou senha incorretos.',
-  'auth/wrong-password': 'E-mail ou senha incorretos.',
-  'auth/user-not-found': 'E-mail ou senha incorretos.',
-  'auth/invalid-email': 'E-mail inválido.',
-  'auth/email-already-in-use': 'Já existe uma conta com este e-mail.',
-  'auth/weak-password': 'Senha fraca. Siga os requisitos da senha.',
-  'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
-  'auth/network-request-failed': 'Sem conexão com o servidor. Verifique sua internet.',
-  'auth/requires-recent-login': 'Por segurança, saia e entre novamente e repita a operação.',
-  'permission-denied': 'Sem permissão no banco de dados. Confira se as regras do Firestore (arquivo firestore.rules) foram publicadas.',
-  'app/nao-autorizado': 'Este e-mail não está autorizado a criar conta. Peça ao gestor ou administrador para liberar o seu e-mail.',
-  'app/desativada': 'Conta desativada. Fale com o gestor ou administrador.',
-  'local/exists': 'Já existe uma conta com este e-mail.',
-  'local/nocrypto': 'O modo de teste exige HTTPS ou localhost.',
-  'local/noreset': 'Redefinição por e-mail só funciona com o banco Firebase configurado.'
-};
-const erroMsg = e => ERROS[e && e.code] || ('Não foi possível concluir. ' + ((e && e.message) || ''));
-
-/* =============== BACKEND 1: Firebase =============== */
-async function backendFirebase(){
-  const [app, A, F] = await Promise.all([
-    import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')
-  ]);
-  const fb = app.initializeApp(FIREBASE_CONFIG), auth = A.getAuth(fb), db = F.getFirestore(fb);
-  auth.languageCode = 'pt-BR';
-  const usr = () => auth.currentUser;
-  const D = (...p) => F.doc(db, ...p);
-  const C = (...p) => F.collection(db, ...p);
-  const pref = () => D('usuarios', usr().uid);
-  const notas = () => C('usuarios', usr().uid, 'notas');
-  const rows = s => s.docs.map(d => Object.assign({ id: d.id }, d.data()));
-  return {
-    mode: 'firebase',
-    watch: cb => A.onAuthStateChanged(auth, u => cb(u ? { id: u.uid, email: u.email } : null)),
-    signIn: (e, p) => A.signInWithEmailAndPassword(auth, e, p),
-    signUp: (e, p) => A.createUserWithEmailAndPassword(auth, e, p),
-    signOut: () => A.signOut(auth),
-    reset: e => A.sendPasswordResetEmail(auth, e),
-    async changePw(cur, nw){
-      await A.reauthenticateWithCredential(usr(), A.EmailAuthProvider.credential(usr().email, cur));
-      await A.updatePassword(usr(), nw);
-    },
-    /* perfil */
-    async getProfile(){ const s = await F.getDoc(pref()); return s.exists() ? Object.assign({ uid: usr().uid }, s.data()) : null; },
-    async createProfile(){
-      const email = usr().email.toLowerCase();
-      const base = { email, nome: '', tema: 'light', favoritos: [], usos: {}, ordem: [], ativo: true, criado: Date.now() };
-      const g = await F.getDoc(D('config', 'geral'));
-      if (!g.exists()){                         /* primeira conta do sistema = administrador (criador) */
-        const b = F.writeBatch(db), p = Object.assign({}, base, { papel: 'admin' });
-        b.set(pref(), p); b.set(D('config', 'geral'), { cadastroAberto: false, criado: Date.now(), criadorUid: usr().uid });
-        await b.commit(); return Object.assign({ uid: usr().uid }, p);
-      }
-      const p = Object.assign({}, base, { papel: 'operador' });
-      try { await F.setDoc(pref(), p); }
-      catch (e) { if (e.code === 'permission-denied') throw { code: 'app/nao-autorizado' }; throw e; }
-      return Object.assign({ uid: usr().uid }, p);
-    },
-    updateProfile: patch => F.updateDoc(pref(), patch),
-    async discardIfNew(){
-      const u = usr(); if (u && u.metadata.creationTime === u.metadata.lastSignInTime) { try { await A.deleteUser(u); } catch (e) {} }
-    },
-    async deleteAccount(pw){
-      await A.reauthenticateWithCredential(usr(), A.EmailAuthProvider.credential(usr().email, pw));
-      const s = await F.getDocs(notas());
-      for (const d of s.docs) await F.deleteDoc(d.ref);
-      await F.deleteDoc(pref());
-      await A.deleteUser(usr());
-    },
-    /* gestão (gestor / administrador): o gestor nunca recebe os administradores */
-    async listUsers(papel){
-      const ref = papel === 'admin' ? C('usuarios') : F.query(C('usuarios'), F.where('papel', 'in', ['operador', 'gestor']));
-      return (await F.getDocs(ref)).docs.map(d => Object.assign({ uid: d.id }, d.data()));
-    },
-    setUserAdmin: (uid, patch) => F.updateDoc(D('usuarios', uid), patch),
-    async getConfig(){ const s = await F.getDoc(D('config', 'geral')); return s.exists() ? s.data() : { cadastroAberto: false }; },
-    setConfig: patch => F.updateDoc(D('config', 'geral'), patch),
-    async listAutorizados(){ return (await F.getDocs(C('autorizados'))).docs.map(d => d.id); },
-    addAutorizado: e => F.setDoc(D('autorizados', e.toLowerCase()), { por: usr().email, criado: Date.now() }),
-    delAutorizado: e => F.deleteDoc(D('autorizados', e.toLowerCase())),
-    /* respostas compartilhadas */
-    /* aviso em tempo real: quem está com o site aberto recebe na hora */
-    async sendAviso(texto){ await F.setDoc(D('avisos', 'atual'), { texto, enviadoEm: Date.now(), uid: usr().uid }); },
-    async getAviso(){ const s = await F.getDoc(D('avisos', 'atual')); return s.exists() ? s.data() : null; },
-    watchAviso: cb => F.onSnapshot(D('avisos', 'atual'), s => cb(s.exists() ? s.data() : null), e => console.warn('aviso', e)),
-    async listShared(){ return rows(await F.getDocs(C('respostas'))); },
-    async saveShared(id, d){
-      const data = { grupo: d.grupo, titulo: d.titulo, texto: d.texto, oculta: !!d.oculta, atualizado: Date.now(), por: usr().email };
-      if (id) await F.setDoc(D('respostas', id), data); else await F.addDoc(C('respostas'), data);
-    },
-    deleteShared: id => F.deleteDoc(D('respostas', id)),
-    /* anotações pessoais */
-    async list(){ return rows(await F.getDocs(notas())); },
-    async save(n){
-      const data = { titulo: n.titulo, texto: n.texto, categoria: n.categoria || '', atualizado: Date.now() };
-      if (n.id) await F.setDoc(F.doc(notas(), n.id), data); else await F.addDoc(notas(), data);
-    },
-    del: id => F.deleteDoc(F.doc(notas(), id))
-  };
-}
-
-/* =============== BACKEND 2: teste local (localStorage) =============== */
-function backendLocal(){
-  const S = UI.store, listeners = [];
-  const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-  async function hash(pw, salt){
-    if (!(window.crypto && crypto.subtle)) throw { code: 'local/nocrypto' };
-    const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
-    return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: new TextEncoder().encode(salt), iterations: 120000, hash: 'SHA-256' }, k, 256));
-  }
-  const users = () => S.get('an_users', {});
-  const DB = () => Object.assign({ usuarios: {}, respostas: {}, autorizados: {}, config: null, notas: {} }, S.get('an_db', {}));
-  const save = d => S.set('an_db', d);
-  const cur = () => { try { return sessionStorage.getItem('an_sess'); } catch (e) { return null; } };
-  const setCur = e => { try { e ? sessionStorage.setItem('an_sess', e) : sessionStorage.removeItem('an_sess'); } catch (x) {} };
-  const emit = () => listeners.forEach(cb => cb(cur() ? { id: cur(), email: cur() } : null));
-  const rid = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const mine = () => DB().usuarios[cur()];
-  const gestao = () => { const p = mine(); return p && p.ativo && (p.papel === 'gestor' || p.papel === 'admin'); };
-  const souAdmin = () => { const p = mine(); return p && p.ativo && p.papel === 'admin'; };
-  const need = () => { if (!gestao()) throw { code: 'permission-denied' }; };
-  return {
-    mode: 'local',
-    watch(cb){ listeners.push(cb); cb(cur() ? { id: cur(), email: cur() } : null); },
-    async signUp(e, p){
-      e = e.toLowerCase(); const u = users();
-      if (u[e]) throw { code: 'local/exists' };
-      const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
-      u[e] = { salt, h: await hash(p, salt) }; S.set('an_users', u); setCur(e); emit();
-    },
-    async signIn(e, p){
-      e = e.toLowerCase(); const r = users()[e];
-      if (!r || (await hash(p, r.salt)) !== r.h) throw { code: 'auth/invalid-credential' };
-      setCur(e); emit();
-    },
-    async signOut(){ setCur(null); emit(); },
-    async reset(){ throw { code: 'local/noreset' }; },
-    async changePw(c, n){
-      const u = users(), r = u[cur()];
-      if ((await hash(c, r.salt)) !== r.h) throw { code: 'auth/invalid-credential' };
-      const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
-      u[cur()] = { salt, h: await hash(n, salt) }; S.set('an_users', u);
-    },
-    async getProfile(){ const p = mine(); return p ? Object.assign({ uid: cur() }, p) : null; },
-    async createProfile(){
-      const d = DB(), email = cur();
-      const base = { email, nome: '', tema: 'light', favoritos: [], usos: {}, ordem: [], ativo: true, criado: Date.now() };
-      if (!d.config){ d.config = { cadastroAberto: false, criadorUid: email }; d.usuarios[email] = Object.assign(base, { papel: 'admin' }); }
-      else if (d.config.cadastroAberto || d.autorizados[email]) d.usuarios[email] = Object.assign(base, { papel: 'operador' });
-      else throw { code: 'app/nao-autorizado' };
-      save(d); return Object.assign({ uid: email }, d.usuarios[email]);
-    },
-    async updateProfile(patch){ const d = DB(); Object.assign(d.usuarios[cur()], patch); save(d); },
-    async discardIfNew(){ const u = users(); delete u[cur()]; S.set('an_users', u); },
-    async deleteAccount(pw){
-      const u = users(), r = u[cur()];
-      if ((await hash(pw, r.salt)) !== r.h) throw { code: 'auth/invalid-credential' };
-      const d = DB(), e = cur(); delete d.usuarios[e]; delete d.notas[e]; save(d);
-      delete u[e]; S.set('an_users', u); setCur(null); emit();
-    },
-    async listUsers(){ need(); const d = DB(); return Object.keys(d.usuarios).map(k => Object.assign({ uid: k }, d.usuarios[k])).filter(u => souAdmin() || u.papel !== 'admin'); },
-    async setUserAdmin(uid, patch){
-      need(); const d = DB(), alvo = d.usuarios[uid];
-      if (!alvo || uid === cur() || uid === (d.config || {}).criadorUid) throw { code: 'permission-denied' };
-      if (!souAdmin() && (alvo.papel === 'admin' || patch.papel === 'admin')) throw { code: 'permission-denied' };
-      Object.assign(alvo, patch); save(d);
-    },
-    async getConfig(){ return DB().config || { cadastroAberto: false }; },
-    async setConfig(patch){ need(); const d = DB(); d.config = Object.assign(d.config || {}, patch); save(d); },
-    async listAutorizados(){ need(); return Object.keys(DB().autorizados); },
-    async addAutorizado(e){ need(); const d = DB(); d.autorizados[e.toLowerCase()] = { por: cur() }; save(d); },
-    async delAutorizado(e){ need(); const d = DB(); delete d.autorizados[e.toLowerCase()]; save(d); },
-    async sendAviso(texto){ need(); const d = DB(); d.aviso = { texto, enviadoEm: Date.now(), uid: cur() }; save(d); },
-    async getAviso(){ return DB().aviso || null; },
-    watchAviso(cb){
-      cb(DB().aviso || null); let last = JSON.stringify(DB().aviso || null);
-      const h = e => { if (e.key !== 'an_db') return; const a = DB().aviso || null, j = JSON.stringify(a); if (j !== last){ last = j; cb(a); } };
-      window.addEventListener('storage', h); return () => window.removeEventListener('storage', h);
-    },
-    async listShared(){ return Object.keys(DB().respostas).map(k => Object.assign({ id: k }, DB().respostas[k])); },
-    async saveShared(id, x){ need(); const d = DB(); d.respostas[id || rid()] = { grupo: x.grupo, titulo: x.titulo, texto: x.texto, oculta: !!x.oculta, atualizado: Date.now(), por: cur() }; save(d); },
-    async deleteShared(id){ need(); const d = DB(); delete d.respostas[id]; save(d); },
-    async list(){ return (DB().notas[cur()] || []).slice(); },
-    async save(n){
-      const d = DB(), l = d.notas[cur()] = d.notas[cur()] || [];
-      const data = { titulo: n.titulo, texto: n.texto, categoria: n.categoria || '', atualizado: Date.now() };
-      if (n.id){ const i = l.findIndex(x => x.id === n.id); if (i > -1) l[i] = Object.assign({ id: n.id }, data); }
-      else l.push(Object.assign({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, data));
-      save(d);
-    },
-    async del(id){ const d = DB(); d.notas[cur()] = (d.notas[cur()] || []).filter(x => x.id !== id); save(d); }
-  };
-}
-
-/* =============== estado =============== */
-let B = null, user = null, perfil = null, notes = [], shared = {}, gateMsg = null, authSeq = 0;
-const isAdmin = () => !!perfil && perfil.papel === 'admin';
-const isGestao = () => !!perfil && (perfil.papel === 'admin' || perfil.papel === 'gestor');   /* gestor e administrador têm os mesmos acessos */
-const PAPEL = { admin: 'Administrador', gestor: 'Gestor', operador: 'Operador' };
-const nomeUser = () => (perfil && perfil.nome) || (user && user.email) || '';
-
-/* ---------- perfil: salvar com atraso (favoritos, contadores, ordem, nome, tema) ---------- */
-let pend = null, pendT = null;
-function salvarPerfil(patch){
-  Object.assign(perfil, patch); pend = Object.assign(pend || {}, patch);
-  clearTimeout(pendT);
-  pendT = setTimeout(flushPerfil, 900);
-}
-async function flushPerfil(){
-  if (!pend || !B) return; const p = pend; pend = null; clearTimeout(pendT);
-  try { await B.updateProfile(p); } catch (e) { UI.toast(erroMsg(e), 'err'); }
-}
-window.addEventListener('pagehide', flushPerfil);
-
-/* ---------- tema claro / escuro (o botão e a regra ficam no shell.js, valem para todas as páginas) ---------- */
-const aplicarTema = t => UI.tema.set(t === 'dark' ? 'dark' : 'light', true);
-const temaAtual = () => UI.tema.get();
-UI.tema.onChange = t => { if (perfil) salvarPerfil({ tema: t }); };
-
-/* =============== modelo: respostas originais + compartilhadas + anotações =============== */
+/* =============== modelo: mensagens padrão + ajustes da gestão + anotações pessoais =============== */
 function sortedNotes(){
-  const pos = {}; ((perfil && perfil.ordem) || []).forEach((id, i) => pos[id] = i);
+  const pos = {}; ((P() && P().ordem) || []).forEach((id, i) => pos[id] = i);
   return notes.slice().sort((a, b) => ((pos[a.id] ?? 1e9) - (pos[b.id] ?? 1e9)) || a.titulo.localeCompare(b.titulo, 'pt-BR'));
 }
 function notesGroups(){
@@ -915,32 +189,13 @@ function notesGroups(){
     return { title, items: cats[c].map(n => ({ id: 'nota_' + n.id, label: n.titulo, text: n.texto })) };
   });
 }
-const PALETA = ['#1a4f88', '#00838f', '#CC5500', '#2e7d32', '#6a1b9a', '#c2185b', '#455a64'];
-function baseModel(){
-  const groups = BASE_GROUPS.map(g => ({ title: g.title, items: g.items.map(i => ({ id: i.id, label: i.label, text: BASE_TEXTOS[i.id] || '' })) }));
-  const gOf = t => {
-    let g = groups.find(x => x.title === t);
-    if (!g){ g = { title: t, items: [] }; groups.push(g); if (!META[t]) META[t] = { ico: '💬', c: PALETA[groups.length % PALETA.length] }; }
-    return g;
-  };
-  Object.values(shared).sort((a, b) => (a.atualizado || 0) - (b.atualizado || 0)).forEach(d => {
-    const isBase = BASE_IDS.has(d.id);
-    let from = null, it = null;
-    groups.forEach(g => { const k = g.items.findIndex(x => x.id === d.id); if (k > -1){ from = g; it = g.items[k]; } });
-    if (d.oculta){ if (from) from.items.splice(from.items.indexOf(it), 1); return; }
-    if (isBase && it){
-      it.label = d.titulo; it.text = d.texto; it.over = true;
-      if (d.grupo && d.grupo !== from.title){ from.items.splice(from.items.indexOf(it), 1); gOf(d.grupo).items.push(it); }
-    } else gOf(d.grupo || 'Compartilhadas').items.push({ id: d.id, label: d.titulo, text: d.texto, novo: true });
-  });
-  return groups.filter(g => g.items.length);
-}
 function textoFinal(id, texto){
-  if (perfil && perfil.nome && BASE_IDS.has(id) && texto === BASE_TEXTOS[id]) return texto.replace(/Me chamo Rauan/g, 'Me chamo ' + perfil.nome);
+  if (P() && P().nome && Msgs.BASE_IDS.has(id) && texto === Msgs.BASE_TEXTOS[id]) return texto.replace(/Me chamo Rauan/g, 'Me chamo ' + P().nome);
   return texto;
 }
 function rebuild(){
-  const all = (perfil ? notesGroups() : []).concat(perfil ? baseModel() : BASE_GROUPS.map(g => ({ title: g.title, items: g.items.map(i => ({ id: i.id, label: i.label, text: BASE_TEXTOS[i.id] || '' })) })));
+  const logado = !!P();
+  const all = logado ? notesGroups().concat(Msgs.model(shared)) : Msgs.base();
   GROUPS.length = 0; all.forEach(g => GROUPS.push({ title: g.title, items: g.items.map(i => ({ id: i.id, label: i.label })) }));
   ITEMS.length = 0;
   Object.keys(byId).forEach(k => delete byId[k]); Object.keys(TEXTOS).forEach(k => delete TEXTOS[k]);
@@ -953,14 +208,15 @@ function rebuild(){
   renderRecent(); render();
 }
 
-/* =============== cards: favoritos, contador de uso, editar/duplicar/excluir =============== */
+/* =============== cards: favoritos, contador de uso, editar/duplicar/excluir (só para quem entrou) =============== */
 const renderOriginal = render;
 render = function(){ renderOriginal(); decorar(); };
 
 function decorar(){
   const lista = q('#lista'), chips = q('#chips');
-  if (!perfil) return;
-  const favIds = (perfil.favoritos || []).filter(id => byId[id]);
+  const p = P();
+  if (!p) return;
+  const favIds = (p.favoritos || []).filter(id => byId[id]);
   if (chips && chips.firstElementChild)
     chips.firstElementChild.insertAdjacentHTML('afterend',
       `<button class="chip ${state.g === FAV ? 'active' : ''}" style="--c:#f59e0b" data-g="${FAV}"><i></i>⭐ Favoritos <em>${favIds.length}</em></button>`);
@@ -970,13 +226,13 @@ function decorar(){
       <div class="sec-head"><h2>⭐ Favoritos</h2><span class="count-pill">${favItems.length}</span></div>
       <div class="tpl-grid">${favItems.map(card).join('')}</div></section>`;
   if (state.g === FAV){
-    lista.innerHTML = favItems.length ? sec() : '<div class="nothing"><big>⭐</big>Nenhum favorito ainda. Clique na ☆ de uma resposta para fixá-la aqui.</div>';
+    lista.innerHTML = favItems.length ? sec() : '<div class="nothing"><big>⭐</big>Nenhum favorito ainda. Clique na ☆ de uma mensagem para fixá-la aqui.</div>';
     q('#kTotal').textContent = favItems.length; q('#kGroups').textContent = new Set(favItems.map(i => i.g)).size;
   } else if (state.g === 'all' && favItems.length) lista.insertAdjacentHTML('afterbegin', sec());
 
   qa('.tpl[data-copy]', lista).forEach(c => {
     const id = c.dataset.copy, acts = q('.acts', c); if (!acts) return;
-    const fav = favIds.includes(id), n = (perfil.usos || {})[id] || 0;
+    const fav = favIds.includes(id), n = (p.usos || {})[id] || 0;
     let h = `<button class="btn ghost fav ${fav ? 'on' : ''}" data-fav="${esc(id)}" type="button" title="${fav ? 'Remover dos favoritos' : 'Favoritar'}" aria-pressed="${fav}">${fav ? '★' : '☆'}</button>`;
     if (id.startsWith('nota_')){
       const nid = id.slice(5);
@@ -992,31 +248,35 @@ function decorar(){
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-fav],[data-nedit],[data-ndup],[data-ndel]'); if (!b) return;
   e.stopPropagation();
+  if (!P()) return;
   if (b.dataset.fav){
-    const id = b.dataset.fav, f = (perfil.favoritos || []).slice(), i = f.indexOf(id);
+    const id = b.dataset.fav, f = (P().favoritos || []).slice(), i = f.indexOf(id);
     i > -1 ? f.splice(i, 1) : f.push(id);
-    salvarPerfil({ favoritos: f }); render();
+    Core.salvarPerfil({ favoritos: f }); render();
   }
-  else if (b.dataset.nedit) openPanel('notas', b.dataset.nedit);
+  else if (b.dataset.nedit) openNotas(b.dataset.nedit);
   else if (b.dataset.ndup) duplicarNota(b.dataset.ndup);
   else removerNota(b.dataset.ndel);
 }, true);
 
-/* ---------- campos variáveis: {nome}, {data}, {operador} ---------- */
+/* =============== campos variáveis: {nome}, {data}, {operador} =============== */
 const VAR_RE = /\{([A-Za-zÀ-ÿ0-9_ ]{1,30})\}/g;
-const AUTO = { data: () => new Date().toLocaleDateString('pt-BR'), operador: () => (perfil && perfil.nome) || '' };
+const AUTO = { data: () => new Date().toLocaleDateString('pt-BR'), operador: () => (P() && P().nome) || '' };
 const autoVal = v => (AUTO[UI.norm(v)] ? AUTO[UI.norm(v)]() : '');
 function variaveis(t){ const s = new Set(); t.replace(VAR_RE, (m, v) => { s.add(v.trim()); return m; }); return [...s]; }
 const preencher = (t, vals) => t.replace(VAR_RE, (m, v) => { v = v.trim(); return (v in vals) ? vals[v] : (autoVal(v) || m); });
 
+/* contador de cópias: na conta de quem entrou; para visitantes, só neste navegador */
+const usosAtuais = () => (P() ? (P().usos || {}) : (UI.store.get('rr_usos', {}) || {}));
 function registrarUso(id){
-  const u = Object.assign({}, perfil.usos || {}); u[id] = (u[id] || 0) + 1;
-  salvarPerfil({ usos: u }); render();
+  const u = Object.assign({}, usosAtuais()); u[id] = (u[id] || 0) + 1;
+  if (P()) Core.salvarPerfil({ usos: u }); else UI.store.set('rr_usos', u);
+  render();
 }
 copyItem = function(id){
   const it = byId[id]; if (!it) return;
   const falta = variaveis(it.text).filter(v => !autoVal(v));
-  const fim = vals => { UI.copy(preencher(it.text, vals), 'Copiado: ' + it.label); use(id); if (perfil) registrarUso(id); };
+  const fim = vals => { UI.copy(preencher(it.text, vals), 'Copiado: ' + it.label); use(id); registrarUso(id); };
   if (!falta.length) return fim({});
   setTimeout(() => {                      /* depois de qualquer janela que esteja fechando */
     const m = UI.openModal({
@@ -1033,125 +293,46 @@ copyItem = function(id){
   }, 0);
 };
 
-/* =============== anotações: carregar / excluir / duplicar =============== */
+/* =============== anotações pessoais: carregar / excluir / duplicar =============== */
 async function loadNotes(){
-  try { notes = await B.list(); } catch (e) { notes = []; UI.toast(erroMsg(e), 'err'); }
+  try { notes = await B().list(); } catch (e) { notes = []; UI.toast(erroMsg(e), 'err'); }
 }
 async function loadShared(){
-  try { shared = Object.fromEntries((await B.listShared()).map(d => [d.id, d])); }
+  try { shared = Object.fromEntries((await B().listShared()).map(d => [d.id, d])); }
   catch (e) { shared = {}; UI.toast(erroMsg(e), 'err'); }
 }
 async function removerNota(id){
   const x = notes.find(y => y.id === id);
   if (!x || !confirm('Excluir a anotação "' + x.titulo + '"?')) return false;
   try {
-    await B.del(x.id); await loadNotes();
+    await B().del(x.id); await loadNotes();
     const nid = 'nota_' + id;
-    salvarPerfil({ favoritos: (perfil.favoritos || []).filter(f => f !== nid), ordem: (perfil.ordem || []).filter(o => o !== id) });
+    Core.salvarPerfil({ favoritos: (P().favoritos || []).filter(f => f !== nid), ordem: (P().ordem || []).filter(o => o !== id) });
     rebuild(); UI.toast('Anotação excluída'); return true;
   } catch (e) { UI.toast(erroMsg(e), 'err'); return false; }
 }
 async function duplicarNota(id){
   const x = notes.find(y => y.id === id); if (!x) return false;
   const suf = ' (cópia)', titulo = (x.titulo.length + suf.length > 80 ? x.titulo.slice(0, 80 - suf.length) : x.titulo) + suf;
-  try { await B.save({ titulo, texto: x.texto, categoria: x.categoria }); await loadNotes(); rebuild(); UI.toast('Anotação duplicada'); return true; }
+  try { await B().save({ titulo, texto: x.texto, categoria: x.categoria }); await loadNotes(); rebuild(); UI.toast('Anotação duplicada'); return true; }
   catch (e) { UI.toast(erroMsg(e), 'err'); return false; }
 }
 
-/* =============== tela de login =============== */
-function showMsg(el, kind, text){ el.className = 'au-msg show ' + kind; el.textContent = text; }
-const eyeBtn = '<button type="button" class="au-eye" aria-label="Mostrar/ocultar senha" tabindex="-1">👁</button>';
-document.addEventListener('click', e => {
-  const b = e.target.closest('.au-eye'); if (!b) return;
-  const i = b.parentNode.querySelector('input'); i.type = i.type === 'password' ? 'text' : 'password';
-});
-
-function buildGate(){
-  const g = document.createElement('div');
-  g.className = 'au-gate'; g.id = 'authGate';
-  g.innerHTML = `<form class="au-card" id="auForm" novalidate>
-    <h1>Anotações</h1>
-    <p class="au-sub">Entre para acessar suas respostas e anotações.</p>
-    <div class="au-tabs" role="tablist">
-      <button type="button" class="active" data-m="in">Entrar</button>
-      <button type="button" data-m="up">Criar conta</button>
-    </div>
-    <div class="au-msg" id="auMsg" role="alert"></div>
-    <label class="au-f"><span>E-mail (login)</span><input class="au-plain" id="auEmail" type="email" autocomplete="username" required></label>
-    <label class="au-f"><span>Senha</span><div class="au-in"><input id="auPw" type="password" autocomplete="current-password" required>${eyeBtn}</div></label>
-    <div id="auUp" class="hidden">
-      <label class="au-f"><span>Confirmar senha</span><div class="au-in"><input id="auPw2" type="password" autocomplete="new-password">${eyeBtn}</div></label>
-      ${rulesHTML()}
-      <p class="au-note" style="margin:-4px 0 14px;text-align:left">Seu e-mail precisa ter sido autorizado pelo gestor. A primeira conta do sistema vira administrador automaticamente.</p>
-    </div>
-    <button class="btn au-go" id="auGo" type="submit">Entrar</button>
-    <button class="au-link" id="auForgot" type="button">Esqueci minha senha</button>
-    ${B.mode === 'local' ? '<p class="au-msg warn show" style="margin:14px 0 0">Modo de teste local: banco de dados ainda não vinculado. As contas ficam apenas neste navegador.</p>' : ''}
-  </form>`;
-  document.getElementById('conteudo').insertAdjacentElement('beforebegin', g);
-
-  let mode = 'in';
-  const form = q('#auForm', g), msg = q('#auMsg', g), pw = q('#auPw', g), go = q('#auGo', g);
-  if (gateMsg){ showMsg(msg, 'err', gateMsg); gateMsg = null; }
-  bindRules(pw, q('.au-rules', g));
-  qa('.au-tabs button', g).forEach(b => b.onclick = () => {
-    mode = b.dataset.m;
-    qa('.au-tabs button', g).forEach(x => x.classList.toggle('active', x === b));
-    q('#auUp', g).classList.toggle('hidden', mode !== 'up');
-    q('#auForgot', g).classList.toggle('hidden', mode === 'up');
-    go.textContent = mode === 'up' ? 'Criar conta' : 'Entrar';
-    pw.autocomplete = mode === 'up' ? 'new-password' : 'current-password';
-    msg.className = 'au-msg';
-  });
-  q('#auForgot', g).onclick = async () => {
-    const email = q('#auEmail', g).value.trim();
-    if (!email) return showMsg(msg, 'err', 'Digite seu e-mail para receber o link de redefinição.');
-    try { await B.reset(email); showMsg(msg, 'ok', 'Se o e-mail estiver cadastrado, enviamos um link para redefinir a senha.'); }
-    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
-  };
-  form.onsubmit = async ev => {
-    ev.preventDefault();
-    const email = q('#auEmail', g).value.trim(), p = pw.value;
-    if (!email || !p) return showMsg(msg, 'err', 'Preencha e-mail e senha.');
-    if (mode === 'up'){
-      if (!pwValid(p)) return showMsg(msg, 'err', 'A senha não atende aos requisitos abaixo.');
-      if (p !== q('#auPw2', g).value) return showMsg(msg, 'err', 'As senhas não conferem.');
-    }
-    go.disabled = true;
-    try { await (mode === 'up' ? B.signUp(email, p) : B.signIn(email, p)); }
-    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
-    go.disabled = false;
-  };
-}
-
-/* =============== painel de controle =============== */
-function tabsDef(){
-  const t = [['perfil', '👤 Perfil'], ['uso', '📊 Uso'], ['senha', '🔒 Senha'], ['backup', '💾 Backup']];
-  if (isGestao()) t.push(['respostas', '📚 Respostas'], ['usuarios', '👥 Usuários'], ['mensagem', '📢 Mensagem']);
-  return t;
-}
-/* openPanel('notas', id)  -> janela "Anotações" (só as anotações; é a de "+ Nova anotação")
-   openPanel('perfil')     -> "Painel de controle" (todo o restante) */
-function openPanel(tab, arg){
-  if (tab === 'notas'){
-    const m = UI.openModal({ title: 'Anotações', sub: user.email, size: 'wide', html: '<div id="auBody"></div>' });
-    tabNotas(q('#auBody', m.body), arg); return;
-  }
-  const m = UI.openModal({
-    title: 'Painel de controle', sub: user.email + ' · ' + (PAPEL[perfil.papel] || 'Operador'), size: 'wide',
-    html: `<div class="au-panel-tabs">${tabsDef().map(([k, l]) => `<button type="button" data-t="${k}">${l}</button>`).join('')}</div><div id="auBody"></div>`,
-    foot: '<button class="btn danger" id="auOut" type="button">Sair da conta</button>'
-  });
-  const body = q('#auBody', m.body);
-  const FN = { uso: tabUso, perfil: tabPerfil, senha: tabSenha, backup: tabBackup, respostas: tabRespostas, usuarios: tabUsuarios, mensagem: tabMensagem };
-  const setTab = (t, a) => { qa('.au-panel-tabs button', m.body).forEach(b => b.classList.toggle('active', b.dataset.t === t)); FN[t](body, a); };
-  qa('.au-panel-tabs button', m.body).forEach(b => b.onclick = () => setTab(b.dataset.t));
-  q('#auOut', m.foot).onclick = async () => { UI.closeModal(); await flushPerfil(); await B.signOut(); };
-  setTab(tab || 'perfil', arg);
-}
+/* =============== janela "Anotações" (＋ Nova anotação) =============== */
 const catsOrdenadas = list => [...new Set(list)].sort((a, b) => a === '' ? -1 : b === '' ? 1 : a.localeCompare(b, 'pt-BR'));
 
-/* ---------- Anotações ---------- */
+function openNotas(editing){
+  const m = UI.openModal({ title: 'Anotações', sub: Core.usuarioDe(P()), size: 'wide', html: '<div id="auBody"></div>' });
+  tabNotas(q('#auBody', m.body), editing);
+}
+function avisoEntrar(){
+  UI.openModal({
+    title: 'Entre para criar anotações',
+    html: '<p class="au-sub" style="margin:0">Qualquer pessoa pode ver e copiar as mensagens prontas desta página. Para criar anotações próprias, é preciso entrar com o seu usuário no <b>Painel de Controle</b>.</p>',
+    foot: '<a class="btn" href="painel.html">⚙️ Ir para o Painel de Controle</a>'
+  });
+}
+
 function tabNotas(box, editing){
   const n = editing && notes.find(x => x.id === editing);
   const by = {}; sortedNotes().forEach(x => { const c = (x.categoria || '').trim(); (by[c] = by[c] || []).push(x); });
@@ -1168,7 +349,7 @@ function tabNotas(box, editing){
       </div></div>`;
   box.innerHTML = `
     <div class="au-list">${notes.length ? keys.map(c => (keys.length > 1 || c ? `<div class="au-cat">${esc(c || 'Sem categoria')}</div>` : '') + by[c].map((x, i) => item(x, i, by[c].length)).join('')).join('')
-      : '<div class="au-empty">Você ainda não tem anotações. Crie a primeira abaixo.</div>'}</div>
+      : '<div class="au-empty">Você ainda não tem anotações. Crie a primeira no formulário abaixo.</div>'}</div>
     <hr class="au-sep">
     <div class="au-msg" id="nMsg" role="alert"></div>
     <label class="au-f"><span>${n ? 'Editar anotação' : 'Nova anotação'} — título</span><input class="au-plain" id="nTit" maxlength="80" value="${n ? esc(n.titulo) : ''}"></label>
@@ -1194,13 +375,13 @@ function tabNotas(box, editing){
   const c = q('#nCancel', box); if (c) c.onclick = () => tabNotas(box);
   q('#nSave', box).onclick = async () => {
     const titulo = q('#nTit', box).value.trim(), texto = q('#nTxt', box).value.trim(), categoria = q('#nCat', box).value.trim(), msg = q('#nMsg', box);
-    if (!titulo || !texto) return showMsg(msg, 'err', 'Preencha o título e o texto.');
-    try { await B.save({ id: n && n.id, titulo, texto, categoria }); await loadNotes(); rebuild(); tabNotas(box); UI.toast('Anotação salva'); }
+    if (!titulo || !texto) return showMsg(msg, 'err', 'Preencha o título e o texto da anotação.');
+    try { await B().save({ id: n && n.id, titulo, texto, categoria }); await loadNotes(); rebuild(); tabNotas(box); UI.toast('Anotação salva'); }
     catch (e) { showMsg(msg, 'err', erroMsg(e)); }
   };
 }
 const catDe = id => ((notes.find(x => x.id === id) || {}).categoria || '').trim();
-function novaOrdem(box, ord){ salvarPerfil({ ordem: ord }); rebuild(); tabNotas(box); }
+function novaOrdem(box, ord){ Core.salvarPerfil({ ordem: ord }); rebuild(); tabNotas(box); }
 function mover(id, dir, box){
   const ord = sortedNotes().map(x => x.id), L = ord.filter(x => catDe(x) === catDe(id));
   const i = L.indexOf(id), j = i + dir; if (j < 0 || j >= L.length) return;
@@ -1208,308 +389,50 @@ function mover(id, dir, box){
   novaOrdem(box, ord);
 }
 function arrastar(id, alvo, box){
-  if (catDe(id) !== catDe(alvo)) return UI.toast('Arraste dentro da mesma categoria', 'err');
+  if (catDe(id) !== catDe(alvo)) return UI.toast('Só é possível reordenar dentro da mesma categoria.', 'err');
   const ord = sortedNotes().map(x => x.id).filter(x => x !== id); ord.splice(ord.indexOf(alvo), 0, id);
   novaOrdem(box, ord);
 }
 
-/* ---------- Uso (contadores) ---------- */
-function tabUso(box){
-  const usos = perfil.usos || {}, todos = ITEMS.map(i => ({ i, n: usos[i.id] || 0 }));
-  const top = todos.filter(x => x.n).sort((a, b) => b.n - a.n).slice(0, 10), nunca = todos.filter(x => !x.n);
+/* =============== Uso Geral (contadores de cópia) =============== */
+function abrirUso(){
+  const usos = usosAtuais(), todos = ITEMS.map(i => ({ i, n: usos[i.id] || 0 }));
+  const top = todos.filter(x => x.n).sort((a, b) => b.n - a.n).slice(0, 10);
   const max = top.length ? top[0].n : 1, total = todos.reduce((s, x) => s + x.n, 0);
-  box.innerHTML = `
-    <p class="au-sub" style="margin-top:0">Quantas vezes <b>você</b> copiou cada resposta. Total de cópias: <b>${total}</b>.</p>
-    <div class="au-cat">Mais usadas</div>
-    ${top.length ? top.map(x => `<div class="au-bar"><span>${esc(x.i.label)}</span><div><i style="width:${Math.max(6, x.n / max * 100)}%"></i></div><b>${x.n}</b></div>`).join('') : '<div class="au-empty">Ainda não há cópias registradas.</div>'}
-    <div class="au-cat" style="margin-top:18px">Nunca usadas (${nunca.length})</div>
-    <div class="au-tags">${nunca.map(x => `<span>${esc(x.i.label)}</span>`).join('') || '—'}</div>
-    <div style="margin-top:18px"><button class="btn ghost" id="uZero" type="button">Zerar contadores</button></div>`;
-  q('#uZero', box).onclick = () => { if (!confirm('Zerar todos os contadores de uso?')) return; salvarPerfil({ usos: {} }); render(); tabUso(box); };
-}
-
-/* ---------- Perfil ---------- */
-function tabPerfil(box){
-  box.innerHTML = `<div style="max-width:460px">
-    <div class="au-msg" id="fMsg" role="alert"></div>
-    <label class="au-f"><span>Nome de exibição</span><input class="au-plain" id="fNome" maxlength="40" value="${esc(perfil.nome || '')}" placeholder="Ex.: Digite o seu nome..."></label>
-    <p class="au-note" style="text-align:left;margin:-8px 0 12px">Insira o seu nome para alterar no campo <code>{operador}</code>.</p>
-    <button class="btn" id="fNomeSave" type="button">💾 Salvar nome</button>
-    <hr class="au-sep" style="margin-top:18px">
-    <div class="au-f"><span>Tema</span><div class="au-panel-tabs" style="margin:0">
-      <button type="button" data-tema="light" class="${temaAtual() === 'light' ? 'active' : ''}">☀️ Claro</button>
-      <button type="button" data-tema="dark" class="${temaAtual() === 'dark' ? 'active' : ''}">🌙 Escuro</button></div></div>
-    <div class="au-f"><span>Perfil de acesso</span><b>${PAPEL[perfil.papel] || 'Operador'}</b></div>
-    <hr class="au-sep">
-    <div class="au-f"><span style="color:var(--vermelho)">Excluir minha conta</span>
-      <p class="au-note" style="text-align:left;margin:0 0 10px">Apaga seu login, suas anotações e suas preferências. Não pode ser desfeito.${isGestao() ? ' <b>Gestores e administradores não podem excluir a própria conta. Peça a outra pessoa da gestão para mudar seu perfil para operador antes.</b>' : ''}</p>
-      <div class="au-in"><input id="fDelPw" type="password" placeholder="Digite sua senha para confirmar" autocomplete="current-password" ${isGestao() ? 'disabled' : ''}>${eyeBtn}</div></div>
-    <button class="btn danger" id="fDel" type="button" ${isGestao() ? 'disabled' : ''}>🗑 Excluir minha conta</button></div>`;
-  const msg = q('#fMsg', box);
-  q('#fNomeSave', box).onclick = () => {
-    salvarPerfil({ nome: q('#fNome', box).value.trim() }); atualizarUserBtn(); rebuild(); showMsg(msg, 'ok', 'Nome salvo.');
-  };
-  qa('[data-tema]', box).forEach(b => b.onclick = () => { aplicarTema(b.dataset.tema); salvarPerfil({ tema: b.dataset.tema }); tabPerfil(box); });
-  q('#fDel', box).onclick = async () => {
-    const p = q('#fDelPw', box).value;
-    if (!p) return showMsg(msg, 'err', 'Digite sua senha para confirmar.');
-    if (!confirm('Excluir DEFINITIVAMENTE sua conta e todas as suas anotações?')) return;
-    try { await flushPerfil(); await B.deleteAccount(p); UI.closeModal(); UI.toast('Conta excluída'); }
-    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
-  };
-}
-
-/* ---------- Alterar senha ---------- */
-function tabSenha(box){
-  box.innerHTML = `<form id="pwForm" novalidate style="max-width:420px">
-    <div class="au-msg" id="pMsg" role="alert"></div>
-    <input type="text" autocomplete="username" value="${esc(user.email)}" hidden>
-    <label class="au-f"><span>Senha atual</span><div class="au-in"><input id="pCur" type="password" autocomplete="current-password">${eyeBtn}</div></label>
-    <label class="au-f"><span>Nova senha</span><div class="au-in"><input id="pNew" type="password" autocomplete="new-password">${eyeBtn}</div></label>
-    <label class="au-f"><span>Confirmar nova senha</span><div class="au-in"><input id="pNew2" type="password" autocomplete="new-password">${eyeBtn}</div></label>
-    ${rulesHTML()}
-    <button class="btn" type="submit">🔒 Alterar senha</button></form>`;
-  bindRules(q('#pNew', box), q('.au-rules', box));
-  q('#pwForm', box).onsubmit = async ev => {
-    ev.preventDefault();
-    const cur = q('#pCur', box).value, nw = q('#pNew', box).value, msg = q('#pMsg', box);
-    if (!cur) return showMsg(msg, 'err', 'Informe a senha atual.');
-    if (!pwValid(nw)) return showMsg(msg, 'err', 'A nova senha não atende aos requisitos abaixo.');
-    if (nw !== q('#pNew2', box).value) return showMsg(msg, 'err', 'As senhas não conferem.');
-    if (nw === cur) return showMsg(msg, 'err', 'A nova senha deve ser diferente da atual.');
-    try { await B.changePw(cur, nw); ev.target.reset(); qa('.au-rules li', box).forEach(li => li.classList.remove('ok')); showMsg(msg, 'ok', 'Senha alterada com sucesso!'); }
-    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
-  };
-}
-
-/* ---------- Backup (exportar / importar anotações) ---------- */
-function tabBackup(box){
-  box.innerHTML = `<div style="max-width:520px"><div class="au-msg" id="bMsg" role="alert"></div>
-    <p class="au-sub" style="margin-top:0">Salve suas anotações em um arquivo ou passe-as para outra pessoa.</p>
-    <button class="btn" id="bExp" type="button">⬇️ Exportar minhas anotações</button>
-    <hr class="au-sep" style="margin-top:18px">
-    <label class="au-f"><span>Importar arquivo de anotações (.json)</span><input class="au-plain" id="bImp" type="file" accept=".json,application/json"></label>
-    <p class="au-note" style="text-align:left">As anotações importadas são <b>somadas</b> às que você já tem; as repetidas são ignoradas.</p></div>`;
-  const msg = q('#bMsg', box);
-  q('#bExp', box).onclick = () => {
-    const data = { app: 'anotacoes', versao: 1, exportado: new Date().toISOString(),
-      notas: notes.map(n => ({ titulo: n.titulo, texto: n.texto, categoria: n.categoria || '' })) };
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-    a.download = 'anotacoes-' + new Date().toISOString().slice(0, 10) + '.json';
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    showMsg(msg, 'ok', notes.length + ' anotação(ões) exportada(s).');
-  };
-  q('#bImp', box).onchange = async ev => {
-    const f = ev.target.files[0]; if (!f) return;
-    try {
-      const d = JSON.parse(await f.text());
-      if (!d || !Array.isArray(d.notas)) throw new Error('Arquivo inválido: não encontrei a lista de anotações.');
-      if (d.notas.length > 500) throw new Error('Arquivo com anotações demais (máximo 500).');
-      const chave = n => [n.titulo, n.texto, (n.categoria || '').trim()].join('\u0001');
-      const tem = new Set(notes.map(chave)); let ok = 0, ign = 0;
-      for (const x of d.notas){
-        const n = { titulo: String(x.titulo || '').trim().slice(0, 80), texto: String(x.texto || '').trim().slice(0, 5000), categoria: String(x.categoria || '').trim().slice(0, 40) };
-        if (!n.titulo || !n.texto || tem.has(chave(n))){ ign++; continue; }
-        await B.save(n); tem.add(chave(n)); ok++;
-      }
-      await loadNotes(); rebuild(); showMsg(msg, 'ok', ok + ' importada(s), ' + ign + ' ignorada(s).');
-    } catch (e) { showMsg(msg, 'err', (e && e.message) || 'Não foi possível importar o arquivo.'); }
-    ev.target.value = '';
-  };
-}
-
-/* ---------- Respostas compartilhadas (gestor) ---------- */
-function tabRespostas(box, editId){
-  const model = baseModel(), flat = model.flatMap(g => g.items.map(i => Object.assign({ grupo: g.title }, i)));
-  const ed = editId && flat.find(x => x.id === editId);
-  const ocultas = Object.values(shared).filter(d => d.oculta);
-  const row = i => `<div class="au-item"><div class="au-main"><b>${esc(i.label)}</b>
-      <small>${i.novo ? 'Criada pela gestão' : i.over ? 'Original ajustada pela gestão' : 'Original do sistema'}</small></div>
-      <div class="au-acts"><button class="btn ghost" data-sed="${esc(i.id)}" type="button">✏️ Editar</button>
-      ${i.novo ? `<button class="btn ghost" data-sdel="${esc(i.id)}" type="button">🗑 Excluir</button>`
-        : `${i.over ? `<button class="btn ghost" data-sres="${esc(i.id)}" type="button">♻ Restaurar original</button>` : ''}<button class="btn ghost" data-shide="${esc(i.id)}" type="button">🙈 Ocultar</button>`}
-      </div></div>`;
-  box.innerHTML = `
-    <p class="au-sub" style="margin-top:0">As mudanças feitas aqui valem para <b>todos os usuários</b> (operadores e gestores).</p>
-    <div class="au-msg" id="sMsg" role="alert"></div>
-    <label class="au-f"><span>${ed ? 'Editar resposta' : 'Nova resposta compartilhada'} — categoria</span>
-      <input class="au-plain" id="sGrp" maxlength="60" list="grpList" value="${ed ? esc(ed.grupo) : ''}" placeholder="Ex.: Informações">
-      <datalist id="grpList">${model.map(g => `<option value="${esc(g.title)}">`).join('')}</datalist></label>
-    <label class="au-f"><span>Título (botão)</span><input class="au-plain" id="sTit" maxlength="80" value="${ed ? esc(ed.label) : ''}"></label>
-    <label class="au-f"><span>Texto — *texto* para negrito; {campo} é preenchido na hora de copiar; {operador} e {data} entram sozinhos</span><textarea id="sTxt" maxlength="5000">${ed ? esc(ed.text) : ''}</textarea></label>
-    <div style="display:flex;gap:8px"><button class="btn" id="sSave" type="button">💾 Salvar para todos</button>${ed ? '<button class="btn ghost" id="sCancel" type="button">Cancelar</button>' : ''}</div>
-    <hr class="au-sep" style="margin-top:18px">
-    ${model.map(g => `<div class="au-cat">${esc(g.title)}</div>${g.items.map(row).join('')}`).join('')}
-    ${ocultas.length ? `<div class="au-cat" style="margin-top:14px">Ocultas (${ocultas.length})</div>${ocultas.map(d => `<div class="au-item"><div class="au-main"><b>${esc(d.titulo)}</b><small>Oculta para todos</small></div>
-      <div class="au-acts"><button class="btn ghost" data-sres="${esc(d.id)}" type="button">♻ Reexibir</button></div></div>`).join('')}` : ''}`;
-  const msg = q('#sMsg', box);
-  const done = async txt => { await loadShared(); rebuild(); tabRespostas(box); UI.toast(txt); };
-  const run = async (fn, txt) => { try { await fn(); await done(txt); } catch (e) { showMsg(q('#sMsg', box), 'err', erroMsg(e)); } };
-  qa('[data-sed]', box).forEach(b => b.onclick = () => { tabRespostas(box, b.dataset.sed); q('#sTit', box).scrollIntoView({ block: 'center' }); q('#sTit', box).focus(); });
-  qa('[data-shide]', box).forEach(b => b.onclick = () => { const i = flat.find(x => x.id === b.dataset.shide); run(() => B.saveShared(i.id, { grupo: i.grupo, titulo: i.label, texto: i.text, oculta: true }), 'Resposta ocultada'); });
-  qa('[data-sres]', box).forEach(b => b.onclick = () => run(() => B.deleteShared(b.dataset.sres), 'Restaurado'));
-  qa('[data-sdel]', box).forEach(b => b.onclick = () => { if (confirm('Excluir esta resposta para todos?')) run(() => B.deleteShared(b.dataset.sdel), 'Resposta excluída'); });
-  const c = q('#sCancel', box); if (c) c.onclick = () => tabRespostas(box);
-  q('#sSave', box).onclick = () => {
-    const grupo = q('#sGrp', box).value.trim(), titulo = q('#sTit', box).value.trim(), texto = q('#sTxt', box).value.trim();
-    if (!grupo || !titulo || !texto) return showMsg(msg, 'err', 'Preencha categoria, título e texto.');
-    if (grupo.startsWith(GRUPO)) return showMsg(msg, 'err', 'Essa categoria é reservada para as anotações pessoais.');
-    run(() => B.saveShared(ed ? ed.id : null, { grupo, titulo, texto, oculta: false }), 'Resposta salva para todos');
-  };
-}
-
-/* ---------- Usuários (gestor) ---------- */
-async function tabUsuarios(box){
-  box.innerHTML = '<div class="au-empty">Carregando…</div>';
-  let us, aut, cfg;
-  try { [us, aut, cfg] = await Promise.all([B.listUsers(perfil.papel), B.listAutorizados(), B.getConfig()]); }
-  catch (e) { box.innerHTML = `<div class="au-msg err show">${esc(erroMsg(e))}</div>`; return; }
-  if (!isAdmin()) us = us.filter(u => u.papel !== 'admin');          /* o gestor nunca vê administradores */
-  us.sort((a, b) => a.email.localeCompare(b.email));
-  const opt = (v, atual) => `<option value="${v}" ${atual === v ? 'selected' : ''}>${PAPEL[v]}</option>`;
-  box.innerHTML = `<div class="au-msg" id="uMsg" role="alert"></div>
-    <div class="au-cat">Quem pode criar conta</div>
-    <label class="au-check"><input type="checkbox" id="uOpen" ${cfg.cadastroAberto ? 'checked' : ''}> Permitir que <b>qualquer pessoa</b> crie conta (desmarcado = só e-mails autorizados abaixo)</label>
-    <div class="au-tags" style="margin:10px 0">${aut.map(e => `<span>${esc(e)} <button type="button" data-aut-del="${esc(e)}" title="Remover" aria-label="Remover ${esc(e)}">×</button></span>`).join('') || '<em>Nenhum e-mail autorizado ainda.</em>'}</div>
-    <div style="display:flex;gap:8px;margin-bottom:18px"><input class="au-plain" id="uNew" type="email" placeholder="email@exemplo.com" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:12px"><button class="btn" id="uAdd" type="button">＋ Autorizar</button></div>
-    <div class="au-cat">Usuários (${us.length})</div>
-    ${us.map(u => {
-      const eu = u.uid === user.id, criador = u.uid === cfg.criadorUid, trava = eu || criador;
-      const podeEditar = !trava && (isAdmin() || u.papel !== 'admin');
-      return `<div class="au-item"><div class="au-main"><b>${esc(u.email)}${eu ? ' (você)' : ''}${criador ? ' · criador' : ''}</b><small>${esc(u.nome || 'sem nome')}</small></div>
-      <div class="au-acts"><select class="select" data-papel="${esc(u.uid)}" ${podeEditar ? '' : 'disabled'}>${opt('operador', u.papel)}${opt('gestor', u.papel)}${isAdmin() ? opt('admin', u.papel) : ''}</select>
-      <label class="au-check"><input type="checkbox" data-ativo="${esc(u.uid)}" ${u.ativo ? 'checked' : ''} ${podeEditar ? '' : 'disabled'}> Ativo</label></div></div>`; }).join('')}`;
-  const msg = q('#uMsg', box), ok = t => showMsg(msg, 'ok', t), err = e => showMsg(msg, 'err', erroMsg(e));
-  q('#uOpen', box).onchange = async ev => { try { await B.setConfig({ cadastroAberto: ev.target.checked }); ok(ev.target.checked ? 'Cadastro aberto a qualquer pessoa.' : 'Cadastro restrito aos e-mails autorizados.'); } catch (e) { ev.target.checked = !ev.target.checked; err(e); } };
-  q('#uAdd', box).onclick = async () => {
-    const e = q('#uNew', box).value.trim().toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return showMsg(msg, 'err', 'Digite um e-mail válido.');
-    try { await B.addAutorizado(e); tabUsuarios(box); } catch (x) { err(x); }
-  };
-  qa('[data-aut-del]', box).forEach(b => b.onclick = async () => { try { await B.delAutorizado(b.dataset.autDel); tabUsuarios(box); } catch (x) { err(x); } });
-  qa('[data-papel]', box).forEach(sel => sel.onchange = async () => {
-    const u = us.find(x => x.uid === sel.dataset.papel);
-    if (sel.value === 'admin' && !isAdmin()){ sel.value = u.papel; return; }
-    if (!confirm('Mudar o perfil de ' + u.email + ' para ' + PAPEL[sel.value] + '?')){ sel.value = u.papel; return; }
-    try { await B.setUserAdmin(u.uid, { papel: sel.value }); u.papel = sel.value; ok('Perfil atualizado.'); } catch (x) { sel.value = u.papel; err(x); }
+  const m = UI.openModal({
+    title: '📊 Uso Geral', sub: P() ? 'Conta: ' + Core.usuarioDe(P()) : 'Contagem guardada só neste navegador', size: 'wide',
+    html: `<p class="au-sub" style="margin-top:0">Quantas vezes <b>você</b> copiou cada mensagem. Total de cópias: <b>${total}</b>.</p>
+      <div class="au-cat">Mais usadas</div>
+      ${top.length ? top.map(x => `<div class="au-bar"><span>${esc(x.i.label)}</span><div><i style="width:${Math.max(6, x.n / max * 100)}%"></i></div><b>${x.n}</b></div>`).join('') : '<div class="au-empty">Ainda não há cópias registradas.</div>'}
+      <div style="margin-top:18px"><button class="btn ghost" id="uZero" type="button">Zerar contadores</button></div>`
   });
-  qa('[data-ativo]', box).forEach(c => c.onchange = async () => {
-    const u = us.find(x => x.uid === c.dataset.ativo);
-    try { await B.setUserAdmin(u.uid, { ativo: c.checked }); u.ativo = c.checked; ok(c.checked ? 'Usuário ativado.' : 'Usuário desativado.'); } catch (x) { c.checked = !c.checked; err(x); }
-  });
-}
-
-/* ---------- Mensagem para todos que estão com o site aberto (gestor / administrador) ---------- */
-async function tabMensagem(box){
-  let atual = null; try { atual = await B.getAviso(); } catch (e) {}
-  const quando = t => new Date(t).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-  box.innerHTML = `<p class="au-sub" style="margin-top:0">A mensagem aparece, na hora, no topo da tela de <b>todas as pessoas que estão com o site aberto</b>. Quem abrir o site depois não recebe.</p>
-    <div class="au-msg" id="mMsg" role="alert"></div>
-    <label class="au-f"><span>Mensagem</span><textarea id="mTxt" maxlength="500" placeholder="Ex.: Sistema do Regula instável, aguardem novas orientações."></textarea></label>
-    <div style="display:flex;gap:10px;align-items:center"><button class="btn" id="mSend" type="button">📢 Enviar para todos</button><span class="au-note" id="mCnt" style="margin:0">0/500</span></div>
-    ${atual ? `<div class="au-cat" style="margin-top:20px">Última mensagem enviada · ${esc(quando(atual.enviadoEm))}</div>
-      <div class="au-item"><div class="au-main"><small style="white-space:pre-wrap;max-width:none">${esc(atual.texto)}</small></div>
-      <div class="au-acts"><button class="btn ghost" id="mAgain" type="button">↻ Usar este texto</button></div></div>` : ''}`;
-  const txt = q('#mTxt', box), msg = q('#mMsg', box), cnt = () => q('#mCnt', box).textContent = txt.value.length + '/500';
-  txt.oninput = cnt;
-  const again = q('#mAgain', box); if (again) again.onclick = () => { txt.value = atual.texto; cnt(); txt.focus(); };
-  q('#mSend', box).onclick = async () => {
-    const t = txt.value.trim();
-    if (!t) return showMsg(msg, 'err', 'Escreva a mensagem.');
-    if (!confirm('Enviar esta mensagem agora para todos que estão com o site aberto?')) return;
-    try { await B.sendAviso(t); UI.toast('Mensagem enviada'); tabMensagem(box); }
-    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+  q('#uZero', m.body).onclick = () => {
+    if (!confirm('Zerar todos os contadores de uso?')) return;
+    if (P()) Core.salvarPerfil({ usos: {} }); else UI.store.set('rr_usos', {});
+    render(); abrirUso();
   };
 }
-let unAviso = null;
-const avisoVisto = id => { try { return localStorage.getItem('an_aviso_visto') === id; } catch (e) { return false; } };
-function mostrarAviso(a, id){
-  const old = q('#avisoBar'); if (old) old.remove();
-  const bar = document.createElement('div');
-  bar.id = 'avisoBar'; bar.className = 'aviso-bar'; bar.setAttribute('role', 'alert');
-  bar.innerHTML = `<div class="aviso-ico">📢</div><div class="aviso-txt"><b>Aviso da gestão</b><div>${esc(a.texto)}</div></div><button class="btn" type="button">Entendi</button>`;
-  q('button', bar).onclick = () => { try { localStorage.setItem('an_aviso_visto', id); } catch (e) {} bar.remove(); };
-  document.body.appendChild(bar);
-}
-function iniciarAvisos(){
-  pararAvisos(); let primeiro = true;
-  try {
-    unAviso = B.watchAviso(a => {
-      const era1a = primeiro; primeiro = false;
-      if (!a || !a.enviadoEm || !user || a.uid === user.id) return;          /* quem enviou não recebe a própria */
-      const id = a.enviadoEm + '_' + a.uid;
-      if (avisoVisto(id)) return;
-      if (era1a && Date.now() - a.enviadoEm > 5 * 60 * 1000) return;         /* só recebe quem estava com o site aberto */
-      mostrarAviso(a, id);
-    });
-  } catch (e) { console.warn('avisos indisponíveis', e); }
-}
-function pararAvisos(){ if (unAviso){ try { unAviso(); } catch (e) {} unAviso = null; } const b = q('#avisoBar'); if (b) b.remove(); }
 
-/* =============== topo e barra de ferramentas =============== */
-function atualizarUserBtn(){
-  const b = q('#userBtn'); if (b) b.innerHTML = '👤 <span>' + esc(nomeUser()) + '</span>';
-}
-function montarUI(){
-  desmontarUI();
-  const b = document.createElement('button');
-  b.id = 'userBtn'; b.className = 'user-btn'; b.type = 'button'; b.title = 'Painel de controle';
-  b.onclick = () => openPanel('perfil');
-  q('.topbar').insertBefore(b, q('#menuBtn')); atualizarUserBtn();
+/* =============== botões da barra de ferramentas =============== */
+(function(){
   const tb = q('.toolbar');
   const add = document.createElement('button');
-  add.className = 'btn nova-nota'; add.type = 'button'; add.textContent = '＋ Nova anotação'; add.onclick = () => openPanel('notas');
-  const painel = document.createElement('button');
-  painel.className = 'btn ghost painel-btn'; painel.type = 'button'; painel.textContent = '⚙️ Painel de controle'; painel.onclick = () => openPanel('perfil');
-  tb.appendChild(add); tb.appendChild(painel);
-}
-function desmontarUI(){ qa('#userBtn,.nova-nota,.painel-btn').forEach(x => x.remove()); }
-
-/* =============== quando a pessoa entra / sai =============== */
-async function onAuth(u){
-  const seq = ++authSeq;
-  if (!u){
-    user = null; perfil = null; notes = []; shared = {}; pend = null; pararAvisos();
-    desmontarUI(); const old = q('#authGate'); if (old) old.remove();
-    document.documentElement.classList.add('auth-lock');
-    rebuild(); buildGate(); return;
-  }
-  try {
-    let p = await B.getProfile();
-    if (!p) p = await B.createProfile();
-    if (seq !== authSeq) return;
-    if (!p.ativo) throw { code: 'app/desativada' };
-    user = u; perfil = Object.assign({ nome: '', tema: 'light', favoritos: [], usos: {}, ordem: [] }, p);
-    /* a escolha feita neste aparelho vale; o perfil só define o tema em aparelho novo */
-    let loc = null; try { loc = localStorage.getItem('an_tema'); } catch (x) {}
-    if (loc && loc !== perfil.tema) salvarPerfil({ tema: loc }); else if (!loc) aplicarTema(perfil.tema);
-    await Promise.all([loadShared(), loadNotes()]);
-    if (seq !== authSeq) return;
-    montarUI(); rebuild(); iniciarAvisos();
-    const g = q('#authGate'); if (g) g.remove();
-    document.documentElement.classList.remove('auth-lock');
-  } catch (e) {
-    if (seq !== authSeq) return;
-    console.error('Login/perfil:', e);
-    if (e && e.code === 'app/nao-autorizado') await B.discardIfNew();
-    gateMsg = erroMsg(e); await B.signOut();
-  }
-}
-
-(async function start(){
-  const ready = Object.values(FIREBASE_CONFIG).every(v => v);
-  try { B = ready ? await backendFirebase() : backendLocal(); }
-  catch (e) {
-    /* com o banco configurado, nunca cai para o modo local: mostra o erro e mantém a página bloqueada */
-    console.error(e);
-    const g = document.createElement('div'); g.className = 'au-gate';
-    g.innerHTML = '<div class="au-card"><h1>Sem conexão com o banco</h1><p class="au-msg err show">Não foi possível conectar ao banco de dados (Firebase). Verifique sua internet e recarregue a página.</p><button class="btn au-go" type="button" onclick="location.reload()">Recarregar</button></div>';
-    document.getElementById('conteudo').insertAdjacentElement('beforebegin', g);
-    return;
-  }
-  B.watch(onAuth);
+  add.className = 'btn nova-nota'; add.type = 'button'; add.textContent = '＋ Nova anotação';
+  add.onclick = () => { if (P()) openNotas(); else avisoEntrar(); };
+  const uso = document.createElement('button');
+  uso.className = 'btn ghost uso-btn'; uso.type = 'button'; uso.textContent = '📊 Uso Geral';
+  uso.onclick = abrirUso;
+  tb.appendChild(add); tb.appendChild(uso);
 })();
+
+/* =============== quem entrou / saiu (o login fica no Painel de Controle) =============== */
+async function aoMudar(st){
+  if (st.logado) await Promise.all([loadShared(), loadNotes()]);
+  else { notes = []; shared = {}; }
+  rebuild();
+  if (st.logado && P().senhaTemp) UI.toast('Você está com uma senha temporária. Defina uma nova no Painel de Controle.');
+}
+Core.init({ allowCreate: false, onChange: aoMudar });
 })();
 </script>
 </body>

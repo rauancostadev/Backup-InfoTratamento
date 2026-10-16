@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<script>try{if(localStorage.getItem('an_tema')==='dark')document.documentElement.setAttribute('data-tema','dark')}catch(e){}</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Controle • Central de Marcação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="painel">
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="eyebrow">⚙️ Acesso restrito</span>
+      <h1>Painel de Controle</h1>
+      <p>Entre com o seu usuário para ajustar o seu perfil e a sua senha. A gestão também administra usuários, mensagens e avisos por aqui.</p>
+    </div>
+  </div>
+</section>
+
+<main class="wrap" id="conteudo">
+  <div id="entrada" class="pn-login"></div>
+  <div id="painel" class="hidden">
+    <div class="pn-top">
+      <div><b id="pnNome"></b><small id="pnSub"></small></div>
+      <button class="btn danger" id="pnSair" type="button">Sair da conta</button>
+    </div>
+    <div id="pnAlerta" class="pn-alert"></div>
+    <div class="pn-grid" id="pnGrid"></div>
+  </div>
+  <div class="page-end"></div>
+</main>
+
+<script src="shell.js"></script>
+<script src="mensagens.js"></script>
+<script src="core.js"></script>
+<script>
+/* =====================================================================
+   PAINEL DE CONTROLE
+   Perfil · Mensagens · Senha · Backup · Usuários · Avisos
+   (Mensagens, Usuários e Avisos aparecem só para Gestor e Administrador.)
+   ===================================================================== */
+(function () {
+'use strict';
+
+const q = (s, r) => (r || document).querySelector(s);
+const qa = (s, r) => [...(r || document).querySelectorAll(s)];
+const esc = UI.esc;
+const { showMsg, eyeBtn, erroMsg, PAPEL, SENHA_TEMP, USER_RE, EMAIL_RE, norm } = Core;
+const B = () => Core.B;
+const GRUPO = 'Minhas Anotações';
+
+/* =============== entrada (login) =============== */
+function buildGate(erro){
+  const box = q('#entrada');
+  box.innerHTML = `<form class="au-card" id="auForm" novalidate>
+    <h1>Painel de Controle</h1>
+    <p class="au-sub">Entre com o seu usuário e a sua senha.</p>
+    <div class="au-tabs" role="tablist">
+      <button type="button" class="active" data-m="in">Entrar</button>
+      <button type="button" data-m="up">Criar conta</button>
+    </div>
+    <div class="au-msg" id="auMsg" role="alert"></div>
+    <label class="au-f"><span>Usuário</span><input class="au-plain" id="auUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="60" required></label>
+    <label class="au-f"><span>Senha</span><div class="au-in"><input id="auPw" type="password" autocomplete="current-password" required>${eyeBtn}</div></label>
+    <div id="auUp" class="hidden">
+      <label class="au-f"><span>Confirmar senha</span><div class="au-in"><input id="auPw2" type="password" autocomplete="new-password">${eyeBtn}</div></label>
+      <label class="au-f"><span>E-mail (opcional)</span><input class="au-plain" id="auMail" type="email" autocomplete="email" maxlength="120" placeholder="Só para contato; não é necessário para entrar"></label>
+      ${Core.rulesHTML()}
+      <p class="au-note" style="margin:-4px 0 14px;text-align:left">O usuário usa de 3 a 30 caracteres: letras minúsculas, números, ponto, hífen ou sublinhado. Ele precisa ter sido autorizado pelo gestor. O primeiro usuário do sistema vira administrador automaticamente.</p>
+    </div>
+    <button class="btn au-go" id="auGo" type="submit">Entrar</button>
+    <button class="au-link" id="auForgot" type="button">Esqueci minha senha</button>
+    <p class="au-note" id="auLegado">Já tinha conta feita com e-mail? Na primeira vez, digite esse e-mail no campo Usuário.</p>
+    ${B() && B().mode === 'local' ? '<p class="au-msg warn show" style="margin:14px 0 0">Modo de teste local: o banco de dados ainda não está vinculado. As contas ficam apenas neste navegador.</p>' : ''}
+  </form>`;
+
+  let mode = 'in';
+  const form = q('#auForm', box), msg = q('#auMsg', box), pw = q('#auPw', box), go = q('#auGo', box);
+  if (erro) showMsg(msg, 'err', erro);
+  Core.bindRules(pw, q('.au-rules', box));
+  qa('.au-tabs button', box).forEach(b => b.onclick = () => {
+    mode = b.dataset.m;
+    qa('.au-tabs button', box).forEach(x => x.classList.toggle('active', x === b));
+    q('#auUp', box).classList.toggle('hidden', mode !== 'up');
+    q('#auForgot', box).classList.toggle('hidden', mode === 'up');
+    q('#auLegado', box).classList.toggle('hidden', mode === 'up');
+    go.textContent = mode === 'up' ? 'Criar conta' : 'Entrar';
+    pw.autocomplete = mode === 'up' ? 'new-password' : 'current-password';
+    msg.className = 'au-msg';
+  });
+  q('#auForgot', box).onclick = async () => {
+    const u = norm(q('#auUser', box).value);
+    if (!USER_RE.test(u)) return showMsg(msg, 'err', 'Digite o seu usuário (não o e-mail) para pedir uma nova senha.');
+    await B().pedirReset(u);
+    showMsg(msg, 'ok', 'Pedido registrado. A gestão vai gerar uma senha temporária para você e avisar. Depois, entre com ela e escolha uma nova senha. Se não houver resposta, procure o gestor ou o administrador.');
+  };
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    if (!B()) return showMsg(msg, 'err', 'Sem conexão com o banco de dados. Recarregue a página.');
+    const user = norm(q('#auUser', box).value), p = pw.value;
+    if (!user || !p) return showMsg(msg, 'err', 'Preencha o usuário e a senha.');
+    if (mode === 'up'){
+      if (!USER_RE.test(user)) return showMsg(msg, 'err', erroMsg({ code: 'app/usuario-invalido' }));
+      if (!Core.pwValid(p)) return showMsg(msg, 'err', 'A senha não atende aos requisitos listados abaixo do campo.');
+      if (p !== q('#auPw2', box).value) return showMsg(msg, 'err', 'As duas senhas não são iguais.');
+      const mail = q('#auMail', box).value.trim();
+      if (mail && !EMAIL_RE.test(mail)) return showMsg(msg, 'err', 'O e-mail informado não é válido. Corrija ou deixe o campo em branco.');
+    }
+    go.disabled = true;
+    try { await (mode === 'up' ? B().signUp(user, p, q('#auMail', box).value) : B().signIn(user, p)); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+    go.disabled = false;
+  };
+}
+
+/* =============== cartões do painel (nesta ordem) =============== */
+const CARDS = [
+  { k: 'perfil',    ico: '👤', t: 'Perfil',    d: 'Nome, e-mail e tema',               c: '#1a4f88' },
+  { k: 'mensagens', ico: '💬', t: 'Mensagens', d: 'Mensagens prontas de todos',        c: '#2e7d32', gestao: true },
+  { k: 'senha',     ico: '🔒', t: 'Senha',     d: 'Trocar a sua senha',                c: '#CC5500' },
+  { k: 'backup',    ico: '💾', t: 'Backup',    d: 'Salvar e importar anotações',       c: '#00838f' },
+  { k: 'usuarios',  ico: '👥', t: 'Usuários',  d: 'Contas e senha temporária',         c: '#6a1b9a', gestao: true },
+  { k: 'avisos',    ico: '📢', t: 'Avisos',    d: 'Avisar quem está com o site aberto', c: '#c2185b', gestao: true }
+];
+const FN = { perfil: tabPerfil, mensagens: tabMensagens, senha: tabSenha, backup: tabBackup, usuarios: tabUsuarios, avisos: tabAvisos };
+const cardsVisiveis = () => CARDS.filter(c => !c.gestao || Core.isGestao());
+
+function montarPainel(){
+  q('#entrada').classList.add('hidden'); q('#entrada').innerHTML = '';
+  q('#painel').classList.remove('hidden');
+  atualizarTopo();
+  q('#pnGrid').innerHTML = cardsVisiveis().map(c =>
+    `<button type="button" class="pn-card" data-k="${c.k}" style="--c:${c.c}"><span class="pn-ico">${c.ico}</span><h2>${c.t}</h2><p>${esc(c.d)}</p></button>`).join('');
+  qa('.pn-card', q('#pnGrid')).forEach(b => b.onclick = () => abrir(b.dataset.k));
+  q('#pnSair').onclick = async () => { UI.closeModal(); await Core.flushPerfil(); await B().signOut(); };
+  if (Core.isGestao()) contarPedidos();
+}
+function desmontarPainel(){ q('#painel').classList.add('hidden'); UI.closeModal(); }
+
+function atualizarTopo(){
+  const p = Core.perfil;
+  q('#pnNome').textContent = 'Olá, ' + Core.nomeUser();
+  q('#pnSub').textContent = Core.usuarioDe(p) + ' · ' + (PAPEL[p.papel] || 'Operador');
+  const al = q('#pnAlerta');
+  if (p.senhaTemp){
+    al.innerHTML = '<div class="au-msg warn show">Você entrou com uma senha temporária. Defina agora uma senha nova e só sua. <button class="btn" id="pnTroca" type="button" style="margin-left:8px">🔒 Definir nova senha</button></div>';
+    q('#pnTroca').onclick = () => abrir('senha');
+  } else al.innerHTML = '';
+}
+async function contarPedidos(){
+  try {
+    const l = await B().listLogins(), n = Object.keys(l).filter(k => l[k].pedido).length;
+    const c = q('.pn-card[data-k="usuarios"]'); if (!c) return;
+    const old = q('.pn-badge', c); if (old) old.remove();
+    if (n) c.insertAdjacentHTML('beforeend', `<span class="pn-badge" title="${n} pedido(s) de nova senha">${n}</span>`);
+  } catch (e) { /* sem permissão ou sem conexão: o cartão segue sem contador */ }
+}
+
+function abrir(k, arg){
+  const c = CARDS.find(x => x.k === k);
+  const m = UI.openModal({ title: c.ico + ' ' + c.t, sub: Core.usuarioDe(Core.perfil) + ' · ' + (PAPEL[Core.perfil.papel] || 'Operador'), size: 'wide', html: '<div id="auBody"></div>' });
+  FN[k](q('#auBody', m.body), arg);
+}
+
+/* =============== Perfil =============== */
+function tabPerfil(box){
+  const p = Core.perfil, tema = UI.tema.get();
+  box.innerHTML = `<div style="max-width:460px">
+    <div class="au-msg" id="fMsg" role="alert"></div>
+    <div class="au-f"><span>Usuário (para entrar)</span><b>${esc(Core.usuarioDe(p))}</b></div>
+    <label class="au-f"><span>Nome de exibição</span><input class="au-plain" id="fNome" maxlength="40" value="${esc(p.nome || '')}" placeholder="Ex.: Maria"></label>
+    <p class="au-note" style="text-align:left;margin:-8px 0 12px">O nome aparece no topo do site e substitui o campo <code>{operador}</code> nas mensagens prontas.</p>
+    <label class="au-f"><span>E-mail (opcional)</span><input class="au-plain" id="fMail" type="email" maxlength="120" value="${esc(p.email || '')}" placeholder="Só para contato; não é usado para entrar"></label>
+    <button class="btn" id="fSave" type="button">💾 Salvar dados</button>
+    <hr class="au-sep" style="margin-top:18px">
+    <div class="au-f"><span>Tema</span><div class="au-panel-tabs" style="margin:0">
+      <button type="button" data-tema="light" class="${tema === 'light' ? 'active' : ''}">☀️ Claro</button>
+      <button type="button" data-tema="dark" class="${tema === 'dark' ? 'active' : ''}">🌙 Escuro</button></div></div>
+    <div class="au-f"><span>Perfil de acesso</span><b>${PAPEL[p.papel] || 'Operador'}</b></div>
+    <hr class="au-sep">
+    <div class="au-f"><span style="color:var(--vermelho)">Excluir minha conta</span>
+      <p class="au-note" style="text-align:left;margin:0 0 10px">Apaga o seu usuário, as suas anotações e as suas preferências. Não dá para desfazer.${Core.isGestao() ? ' <b>Gestores e administradores não podem excluir a própria conta. Peça a outra pessoa da gestão para mudar o seu perfil para operador antes.</b>' : ''}</p>
+      <div class="au-in"><input id="fDelPw" type="password" placeholder="Digite a sua senha para confirmar" autocomplete="current-password" ${Core.isGestao() ? 'disabled' : ''}>${eyeBtn}</div></div>
+    <button class="btn danger" id="fDel" type="button" ${Core.isGestao() ? 'disabled' : ''}>🗑 Excluir minha conta</button></div>`;
+  const msg = q('#fMsg', box);
+  q('#fSave', box).onclick = () => {
+    const mail = q('#fMail', box).value.trim().toLowerCase();
+    if (mail && !EMAIL_RE.test(mail)) return showMsg(msg, 'err', 'O e-mail informado não é válido. Corrija ou deixe o campo em branco.');
+    Core.salvarPerfil({ nome: q('#fNome', box).value.trim(), email: mail });
+    Core.flushPerfil(); atualizarTopo(); showMsg(msg, 'ok', 'Dados salvos.');
+    const b = document.getElementById('userBtn'); if (b) b.innerHTML = '👤 <span>' + esc(Core.nomeUser()) + '</span>';
+  };
+  qa('[data-tema]', box).forEach(b => b.onclick = () => { UI.tema.set(b.dataset.tema, true); Core.salvarPerfil({ tema: b.dataset.tema }); tabPerfil(box); });
+  q('#fDel', box).onclick = async () => {
+    const pw = q('#fDelPw', box).value;
+    if (!pw) return showMsg(msg, 'err', 'Digite a sua senha para confirmar.');
+    if (!confirm('Excluir DEFINITIVAMENTE a sua conta e todas as suas anotações?')) return;
+    try { await Core.flushPerfil(); await B().deleteAccount(pw); UI.closeModal(); UI.toast('Conta excluída'); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+  };
+}
+
+/* =============== Senha =============== */
+function tabSenha(box){
+  const temp = !!Core.perfil.senhaTemp;
+  box.innerHTML = `<form id="pwForm" novalidate style="max-width:420px">
+    <div class="au-msg ${temp ? 'warn show' : ''}" id="pMsg" role="alert">${temp ? 'Você está usando a senha temporária. Escolha uma senha nova para continuar com segurança.' : ''}</div>
+    <input type="text" autocomplete="username" value="${esc(Core.usuarioDe(Core.perfil))}" hidden>
+    ${temp ? '' : `<label class="au-f"><span>Senha atual</span><div class="au-in"><input id="pCur" type="password" autocomplete="current-password">${eyeBtn}</div></label>`}
+    <label class="au-f"><span>Nova senha</span><div class="au-in"><input id="pNew" type="password" autocomplete="new-password">${eyeBtn}</div></label>
+    <label class="au-f"><span>Confirmar nova senha</span><div class="au-in"><input id="pNew2" type="password" autocomplete="new-password">${eyeBtn}</div></label>
+    ${Core.rulesHTML()}
+    <button class="btn" type="submit">🔒 Alterar senha</button></form>`;
+  Core.bindRules(q('#pNew', box), q('.au-rules', box));
+  q('#pwForm', box).onsubmit = async ev => {
+    ev.preventDefault();
+    const cur = temp ? SENHA_TEMP : q('#pCur', box).value, nw = q('#pNew', box).value, msg = q('#pMsg', box);
+    if (!cur) return showMsg(msg, 'err', 'Digite a senha atual.');
+    if (!Core.pwValid(nw)) return showMsg(msg, 'err', 'A nova senha não atende aos requisitos listados abaixo do campo.');
+    if (nw !== q('#pNew2', box).value) return showMsg(msg, 'err', 'As duas senhas novas não são iguais.');
+    if (nw === cur) return showMsg(msg, 'err', 'A nova senha precisa ser diferente da atual.');
+    try {
+      await B().changePw(cur, nw);
+      if (temp){ Core.salvarPerfil({ senhaTemp: false }); await Core.flushPerfil(); atualizarTopo(); }
+      ev.target.reset(); qa('.au-rules li', box).forEach(li => li.classList.remove('ok'));
+      showMsg(msg, 'ok', 'Senha alterada com sucesso!');
+      if (temp) setTimeout(() => tabSenha(box), 1200);
+    } catch (e) { showMsg(msg, 'err', temp && e && e.code === 'auth/invalid-credential' ? 'A senha temporária não vale mais. Peça à gestão para gerar outra.' : erroMsg(e)); }
+  };
+}
+
+/* =============== Backup (exportar / importar anotações) =============== */
+async function tabBackup(box){
+  let notes = [];
+  try { notes = await B().list(); } catch (e) { box.innerHTML = `<div class="au-msg err show">${esc(erroMsg(e))}</div>`; return; }
+  box.innerHTML = `<div style="max-width:520px"><div class="au-msg" id="bMsg" role="alert"></div>
+    <p class="au-sub" style="margin-top:0">Salve as suas anotações em um arquivo ou passe-as para outra pessoa. Você tem <b>${notes.length}</b> anotação(ões).</p>
+    <button class="btn" id="bExp" type="button">⬇️ Exportar minhas anotações</button>
+    <hr class="au-sep" style="margin-top:18px">
+    <label class="au-f"><span>Importar arquivo de anotações (.json)</span><input class="au-plain" id="bImp" type="file" accept=".json,application/json"></label>
+    <p class="au-note" style="text-align:left">As anotações importadas são <b>somadas</b> às que você já tem. As repetidas são ignoradas.</p></div>`;
+  const msg = q('#bMsg', box);
+  q('#bExp', box).onclick = () => {
+    const data = { app: 'anotacoes', versao: 1, exportado: new Date().toISOString(),
+      notas: notes.map(n => ({ titulo: n.titulo, texto: n.texto, categoria: n.categoria || '' })) };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    a.download = 'anotacoes-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    showMsg(msg, 'ok', notes.length + ' anotação(ões) exportada(s).');
+  };
+  q('#bImp', box).onchange = async ev => {
+    const f = ev.target.files[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (!d || !Array.isArray(d.notas)) throw new Error('Arquivo inválido: não encontrei a lista de anotações.');
+      if (d.notas.length > 500) throw new Error('O arquivo tem anotações demais (máximo de 500).');
+      const chave = n => [n.titulo, n.texto, (n.categoria || '').trim()].join('\u0001');
+      const tem = new Set(notes.map(chave)); let ok = 0, ign = 0;
+      for (const x of d.notas){
+        const n = { titulo: String(x.titulo || '').trim().slice(0, 80), texto: String(x.texto || '').trim().slice(0, 5000), categoria: String(x.categoria || '').trim().slice(0, 40) };
+        if (!n.titulo || !n.texto || tem.has(chave(n))){ ign++; continue; }
+        await B().save(n); tem.add(chave(n)); ok++;
+      }
+      showMsg(msg, 'ok', ok + ' importada(s) e ' + ign + ' ignorada(s) (vazias ou repetidas).');
+    } catch (e) { showMsg(msg, 'err', (e && e.message) || 'Não foi possível importar o arquivo.'); }
+    ev.target.value = '';
+  };
+}
+
+/* =============== Mensagens (antes "Respostas") — gestão =============== */
+async function tabMensagens(box, editId){
+  box.innerHTML = '<div class="au-empty">Carregando…</div>';
+  let shared = {};
+  try { shared = Object.fromEntries((await B().listShared()).map(d => [d.id, d])); }
+  catch (e) { box.innerHTML = `<div class="au-msg err show">${esc(erroMsg(e))}</div>`; return; }
+  const model = Msgs.model(shared), flat = model.flatMap(g => g.items.map(i => Object.assign({ grupo: g.title }, i)));
+  const ed = editId && flat.find(x => x.id === editId);
+  const ocultas = Object.values(shared).filter(d => d.oculta);
+  const row = i => `<div class="au-item"><div class="au-main"><b>${esc(i.label)}</b>
+      <small>${i.novo ? 'Criada pela gestão' : i.over ? 'Original ajustada pela gestão' : 'Original do sistema'}</small></div>
+      <div class="au-acts"><button class="btn ghost" data-sed="${esc(i.id)}" type="button">✏️ Editar</button>
+      ${i.novo ? `<button class="btn ghost" data-sdel="${esc(i.id)}" type="button">🗑 Excluir</button>`
+        : `${i.over ? `<button class="btn ghost" data-sres="${esc(i.id)}" type="button">♻ Restaurar original</button>` : ''}<button class="btn ghost" data-shide="${esc(i.id)}" type="button">🙈 Ocultar</button>`}
+      </div></div>`;
+  box.innerHTML = `
+    <p class="au-sub" style="margin-top:0">O que for alterado aqui vale para <b>todas as pessoas que entraram com usuário</b>. Quem usa o site sem entrar vê apenas as mensagens originais do sistema.</p>
+    <div class="au-msg" id="sMsg" role="alert"></div>
+    <label class="au-f"><span>${ed ? 'Editar mensagem' : 'Nova mensagem para todos'} — categoria</span>
+      <input class="au-plain" id="sGrp" maxlength="60" list="grpList" value="${ed ? esc(ed.grupo) : ''}" placeholder="Ex.: Informações">
+      <datalist id="grpList">${model.map(g => `<option value="${esc(g.title)}">`).join('')}</datalist></label>
+    <label class="au-f"><span>Título (nome do botão)</span><input class="au-plain" id="sTit" maxlength="80" value="${ed ? esc(ed.label) : ''}"></label>
+    <label class="au-f"><span>Texto — use *texto* para negrito. {campo} é preenchido na hora de copiar; {operador} e {data} entram sozinhos</span><textarea id="sTxt" maxlength="5000">${ed ? esc(ed.text) : ''}</textarea></label>
+    <div style="display:flex;gap:8px"><button class="btn" id="sSave" type="button">💾 Salvar para todos</button>${ed ? '<button class="btn ghost" id="sCancel" type="button">Cancelar</button>' : ''}</div>
+    <hr class="au-sep" style="margin-top:18px">
+    ${model.map(g => `<div class="au-cat">${esc(g.title)}</div>${g.items.map(row).join('')}`).join('')}
+    ${ocultas.length ? `<div class="au-cat" style="margin-top:14px">Ocultas (${ocultas.length})</div>${ocultas.map(d => `<div class="au-item"><div class="au-main"><b>${esc(d.titulo)}</b><small>Oculta para todos</small></div>
+      <div class="au-acts"><button class="btn ghost" data-sres="${esc(d.id)}" type="button">♻ Reexibir</button></div></div>`).join('')}` : ''}`;
+  const msg = q('#sMsg', box);
+  const run = async (fn, txt) => { try { await fn(); UI.toast(txt); tabMensagens(box); } catch (e) { showMsg(q('#sMsg', box), 'err', erroMsg(e)); } };
+  qa('[data-sed]', box).forEach(b => b.onclick = async () => { await tabMensagens(box, b.dataset.sed); q('#sTit', box).scrollIntoView({ block: 'center' }); q('#sTit', box).focus(); });
+  qa('[data-shide]', box).forEach(b => b.onclick = () => { const i = flat.find(x => x.id === b.dataset.shide); run(() => B().saveShared(i.id, { grupo: i.grupo, titulo: i.label, texto: i.text, oculta: true }), 'Mensagem ocultada'); });
+  qa('[data-sres]', box).forEach(b => b.onclick = () => run(() => B().deleteShared(b.dataset.sres), 'Mensagem restaurada'));
+  qa('[data-sdel]', box).forEach(b => b.onclick = () => { if (confirm('Excluir esta mensagem para todos?')) run(() => B().deleteShared(b.dataset.sdel), 'Mensagem excluída'); });
+  const c = q('#sCancel', box); if (c) c.onclick = () => tabMensagens(box);
+  q('#sSave', box).onclick = () => {
+    const grupo = q('#sGrp', box).value.trim(), titulo = q('#sTit', box).value.trim(), texto = q('#sTxt', box).value.trim();
+    if (!grupo || !titulo || !texto) return showMsg(msg, 'err', 'Preencha a categoria, o título e o texto.');
+    if (grupo.startsWith(GRUPO)) return showMsg(msg, 'err', 'Essa categoria é reservada para as anotações pessoais. Escolha outro nome.');
+    run(() => B().saveShared(ed ? ed.id : null, { grupo, titulo, texto, oculta: false }), 'Mensagem salva para todos');
+  };
+}
+
+/* =============== Usuários — gestão =============== */
+async function tabUsuarios(box){
+  box.innerHTML = '<div class="au-empty">Carregando…</div>';
+  let us, aut, cfg, logins = {};
+  try {
+    [us, aut, cfg] = await Promise.all([B().listUsers(Core.perfil.papel), B().listAutorizados(), B().getConfig()]);
+    logins = await B().listLogins().catch(() => ({}));
+  } catch (e) { box.innerHTML = `<div class="au-msg err show">${esc(erroMsg(e))}</div>`; return; }
+  if (!Core.isAdmin()) us = us.filter(u => u.papel !== 'admin');          /* o gestor nunca vê administradores */
+  const un = u => Core.usuarioDe(u);
+  us.sort((a, b) => (!!(logins[un(b)] || {}).pedido - !!(logins[un(a)] || {}).pedido) || un(a).localeCompare(un(b)));
+  const opt = (v, atual) => `<option value="${v}" ${atual === v ? 'selected' : ''}>${PAPEL[v]}</option>`;
+
+  box.innerHTML = `<div class="au-msg" id="uMsg" role="alert"></div>
+    <div class="au-cat" style="margin-top:0">Localizar usuário e redefinir senha</div>
+    <p class="au-sub" style="margin-top:0">Quando alguém esquecer a senha, localize o usuário abaixo e clique em <b>🔑 Senha temporária</b>. A senha passa a ser <b>${esc(SENHA_TEMP)}</b> por até ${Core.TEMP_HORAS} horas. Avise a pessoa para entrar com ela e escolher uma senha nova em seguida. Quem clicou em "Esqueci minha senha" aparece primeiro, marcado com ⚠.</p>
+    <input class="au-plain" id="uBusca" type="search" placeholder="Digite o usuário ou o nome para localizar…" autocomplete="off" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px">
+    <div id="uLista"></div>
+    <hr class="au-sep" style="margin-top:18px">
+    <div class="au-cat">Quem pode criar conta</div>
+    <label class="au-check"><input type="checkbox" id="uOpen" ${cfg.cadastroAberto ? 'checked' : ''}> Permitir que <b>qualquer pessoa</b> crie conta (desmarcado = só os usuários autorizados abaixo)</label>
+    <div class="au-tags" style="margin:10px 0">${aut.map(e => `<span>${esc(e)} <button type="button" data-aut-del="${esc(e)}" title="Remover" aria-label="Remover ${esc(e)}">×</button></span>`).join('') || '<em>Nenhum usuário autorizado ainda.</em>'}</div>
+    <div style="display:flex;gap:8px"><input class="au-plain" id="uNew" type="text" autocapitalize="none" maxlength="30" placeholder="usuario (ex.: maria.silva)" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:12px"><button class="btn" id="uAdd" type="button">＋ Autorizar</button></div>
+    <p class="au-note" style="text-align:left">A pessoa autorizada cria a conta na tela de entrada, usando exatamente esse usuário.</p>`;
+
+  const msg = q('#uMsg', box), ok = t => showMsg(msg, 'ok', t), err = e => showMsg(msg, 'err', erroMsg(e));
+
+  function lista(){
+    const f = norm(q('#uBusca', box).value);
+    const vis = us.filter(u => !f || norm(un(u) + ' ' + (u.nome || '') + ' ' + (u.email || '')).includes(f));
+    q('#uLista', box).innerHTML = (vis.length ? vis.map(u => {
+      const eu = u.uid === Core.perfil.uid, criador = u.uid === cfg.criadorUid, trava = eu || criador;
+      const podeEditar = !trava && (Core.isAdmin() || u.papel !== 'admin');
+      const lg = u.usuario ? logins[u.usuario] : null, pedido = !!(lg && lg.pedido);
+      const podeSenha = podeEditar && !!lg;
+      const motivo = !lg ? 'Esta conta ainda não entrou desde a atualização do sistema. Peça à pessoa para entrar uma vez com o usuário (ou e-mail antigo) para liberar.'
+        : criador ? 'A conta do criador do sistema não pode ser redefinida por outra pessoa.' : eu ? 'Para trocar a sua própria senha, use o cartão Senha.' : !podeEditar ? 'Sem permissão para esta conta.' : 'Gerar a senha temporária';
+      return `<div class="au-item"><div class="au-main"><b>${esc(un(u))}${eu ? ' (você)' : ''}${criador ? ' · criador' : ''}</b>
+        <small>${esc(u.nome || 'sem nome')}${u.email ? ' · ' + esc(u.email) : ''}</small>
+        ${pedido ? '<small style="color:var(--vermelho);font-weight:700">⚠ Pediu nova senha ("esqueci minha senha")</small>' : ''}
+        ${u.senhaTemp ? '<small style="color:var(--laranja);font-weight:700">Senha temporária ativa: aguardando a troca pela pessoa</small>' : ''}</div>
+        <div class="au-acts"><select class="select" data-papel="${esc(u.uid)}" ${podeEditar ? '' : 'disabled'}>${opt('operador', u.papel)}${opt('gestor', u.papel)}${Core.isAdmin() ? opt('admin', u.papel) : ''}</select>
+        <label class="au-check"><input type="checkbox" data-ativo="${esc(u.uid)}" ${u.ativo ? 'checked' : ''} ${podeEditar ? '' : 'disabled'}> Ativo</label>
+        <button class="btn" data-temp="${esc(u.uid)}" type="button" title="${esc(motivo)}" ${podeSenha ? '' : 'disabled'}>🔑 Senha temporária</button>
+        ${pedido ? `<button class="btn ghost" data-dispensa="${esc(u.uid)}" type="button">Dispensar pedido</button>` : ''}</div></div>`;
+    }).join('') : '<div class="au-empty">Nenhum usuário encontrado.</div>');
+
+    qa('[data-papel]', box).forEach(sel => sel.onchange = async () => {
+      const u = us.find(x => x.uid === sel.dataset.papel);
+      if (sel.value === 'admin' && !Core.isAdmin()){ sel.value = u.papel; return; }
+      if (!confirm('Mudar o perfil de "' + un(u) + '" para ' + PAPEL[sel.value] + '?')){ sel.value = u.papel; return; }
+      try { await B().setUserAdmin(u.uid, { papel: sel.value }); u.papel = sel.value; ok('Perfil atualizado.'); } catch (x) { sel.value = u.papel; err(x); }
+    });
+    qa('[data-ativo]', box).forEach(c => c.onchange = async () => {
+      const u = us.find(x => x.uid === c.dataset.ativo);
+      try { await B().setUserAdmin(u.uid, { ativo: c.checked }); u.ativo = c.checked; ok(c.checked ? 'Usuário ativado.' : 'Usuário desativado.'); } catch (x) { c.checked = !c.checked; err(x); }
+    });
+    qa('[data-temp]', box).forEach(b => b.onclick = async () => {
+      const u = us.find(x => x.uid === b.dataset.temp);
+      if (!confirm('Gerar a senha temporária para "' + un(u) + '"?\n\nA senha atual dessa pessoa deixa de valer. Ela deve entrar com a senha ' + SENHA_TEMP + ' (em até ' + Core.TEMP_HORAS + ' horas) e escolher uma senha nova.')) return;
+      try {
+        await B().gerarSenhaTemp({ uid: u.uid, usuario: u.usuario });
+        u.senhaTemp = true; if (logins[u.usuario]) logins[u.usuario].pedido = false;
+        ok('Senha temporária gerada para "' + un(u) + '": ' + SENHA_TEMP + '. Avise a pessoa para entrar com ela e escolher uma senha nova.');
+        lista(); contarPedidos();
+      } catch (x) { err(x); }
+    });
+    qa('[data-dispensa]', box).forEach(b => b.onclick = async () => {
+      const u = us.find(x => x.uid === b.dataset.dispensa);
+      try { await B().dispensarPedido(u.usuario); logins[u.usuario].pedido = false; ok('Pedido dispensado.'); lista(); contarPedidos(); } catch (x) { err(x); }
+    });
+  }
+  lista();
+  q('#uBusca', box).oninput = UI.debounce(lista, 80);
+
+  q('#uOpen', box).onchange = async ev => { try { await B().setConfig({ cadastroAberto: ev.target.checked }); ok(ev.target.checked ? 'Cadastro aberto a qualquer pessoa.' : 'Cadastro restrito aos usuários autorizados.'); } catch (e) { ev.target.checked = !ev.target.checked; err(e); } };
+  q('#uAdd', box).onclick = async () => {
+    const u = norm(q('#uNew', box).value);
+    if (!USER_RE.test(u)) return showMsg(msg, 'err', erroMsg({ code: 'app/usuario-invalido' }));
+    try { await B().addAutorizado(u); tabUsuarios(box); } catch (x) { err(x); }
+  };
+  qa('[data-aut-del]', box).forEach(b => b.onclick = async () => { try { await B().delAutorizado(b.dataset.autDel); tabUsuarios(box); } catch (x) { err(x); } });
+}
+
+/* =============== Avisos (antes "Mensagem") — gestão =============== */
+async function tabAvisos(box){
+  let atual = null; try { atual = await B().getAviso(); } catch (e) {}
+  const quando = t => new Date(t).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  box.innerHTML = `<p class="au-sub" style="margin-top:0">O aviso aparece, na hora, no topo da tela de <b>todas as pessoas que entraram com usuário e estão com o site aberto</b>. Se a pessoa estiver em outra aba ou janela, o título da aba pisca com "📢 Aviso da gestão!". Quem abrir o site depois não recebe, e você não vê o seu próprio aviso.</p>
+    <div class="au-msg" id="mMsg" role="alert"></div>
+    <label class="au-f"><span>Aviso</span><textarea id="mTxt" maxlength="500" placeholder="Ex.: O sistema do Regula está instável. Aguardem novas orientações."></textarea></label>
+    <div style="display:flex;gap:10px;align-items:center"><button class="btn" id="mSend" type="button">📢 Enviar para todos</button><span class="au-note" id="mCnt" style="margin:0">0/500</span></div>
+    ${atual ? `<div class="au-cat" style="margin-top:20px">Último aviso enviado · ${esc(quando(atual.enviadoEm))}</div>
+      <div class="au-item"><div class="au-main"><small style="white-space:pre-wrap;max-width:none">${esc(atual.texto)}</small></div>
+      <div class="au-acts"><button class="btn ghost" id="mAgain" type="button">↻ Usar este texto</button></div></div>` : ''}`;
+  const txt = q('#mTxt', box), msg = q('#mMsg', box), cnt = () => q('#mCnt', box).textContent = txt.value.length + '/500';
+  txt.oninput = cnt;
+  const again = q('#mAgain', box); if (again) again.onclick = () => { txt.value = atual.texto; cnt(); txt.focus(); };
+  q('#mSend', box).onclick = async () => {
+    const t = txt.value.trim();
+    if (!t) return showMsg(msg, 'err', 'Escreva o aviso antes de enviar.');
+    if (!confirm('Enviar este aviso agora para todos que estão com o site aberto?')) return;
+    try { await B().sendAviso(t); UI.toast('Aviso enviado'); tabAvisos(box); }
+    catch (e) { showMsg(msg, 'err', erroMsg(e)); }
+  };
+}
+
+/* =============== início =============== */
+Core.init({
+  allowCreate: true,
+  onChange(st){
+    if (st.falha){
+      q('#entrada').classList.remove('hidden');
+      q('#entrada').innerHTML = '<div class="au-card"><h1>Sem conexão com o banco</h1><p class="au-msg err show">Não foi possível conectar ao banco de dados (Firebase). Verifique a internet e recarregue a página.</p><button class="btn au-go" type="button" onclick="location.reload()">Recarregar</button></div>';
+      return;
+    }
+    if (st.logado){ montarPainel(); }
+    else { desmontarPainel(); q('#entrada').classList.remove('hidden'); buildGate(st.erro); }
+  }
+});
+})();
+</script>
+</body>
+</html>

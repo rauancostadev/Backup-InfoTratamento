@@ -12,8 +12,9 @@
     { id: 'quimioterapia',    href: 'quimioterapia.html',    label: 'Quimioterapia',     ico: '💉' },
     { id: 'radioterapia',     href: 'radioterapia.html',     label: 'Radioterapia',      ico: '☢️' },
     { id: 'ultrassonografia', href: 'ultrassonografia.html', label: 'Ultrassonografia',  ico: '📺' },
-    { id: 'anotacoes',        href: 'anotacoes.html',        label: 'Anotações', ico: '📋' },
-    { id: 'telefonia',        href: 'telefonia.html',        label: 'Telefonia',         ico: '☎️' }
+    { id: 'anotacoes',        href: 'anotacoes.html',        label: 'Anotações',         ico: '📋' },
+    { id: 'telefonia',        href: 'telefonia.html',        label: 'Telefonia',         ico: '☎️' },
+    { id: 'painel',           href: 'painel.html',           label: 'Painel de Controle', ico: '⚙️' }
   ];
 
   var LOGO = 'https://ligacontraocancer.com.br/wp-content/themes/v01/assets/img/build/liga-contra-o-cancer-footer-red.f7f3067c.png';
@@ -39,13 +40,14 @@
       '<a href="index.html" title="Início"><img src="' + LOGO + '" alt="Liga Contra o Câncer"></a>' +
       '<div class="brand-title">Central de Marcação</div>' +
       '<button class="tema-btn" id="temaBtn" type="button" aria-label="Alternar tema claro/escuro"></button>' +
+      '<a class="user-btn" id="userBtn" href="painel.html" title="Painel de Controle">⚙️ <span>Painel</span></a>' +
       '<button class="menu-btn" id="menuBtn" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="sideMenu">☰ Menu</button>' +
     '</header>' +
     '<nav class="side-menu" id="sideMenu" aria-label="Menu principal">' + links + '</nav>' +
     '<div class="overlay" id="overlay"></div>');
 
   document.body.insertAdjacentHTML('beforeend',
-    '<footer class="footer">Liga Contra o Câncer • Central de Marcação</footer>' +
+    '<footer class="footer">Liga Contra o Câncer • Central de Marcação • <a href="painel.html">Painel de Controle</a></footer>' +
     '<div class="toast" id="toast" role="status" aria-live="polite"></div>');
 
   var menu = document.getElementById('sideMenu');
@@ -183,6 +185,16 @@
     modalEl.classList.remove('show');
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   };
+
+  /* ---------- avisos da gestão em todas as páginas ----------
+     As páginas Anotações e Painel carregam o core.js sozinhas. Nas demais, ele só é carregado
+     se a pessoa entrou na conta neste navegador (para receber avisos e mostrar o nome no topo). */
+  if (current !== 'anotacoes' && current !== 'painel' && UI.store.get('an_logado', false)) {
+    var cs = document.createElement('script');
+    cs.src = 'core.js';
+    cs.onload = function () { if (window.Core) window.Core.init({ allowCreate: false }); };
+    document.head.appendChild(cs);
+  }
 
   /* ---------- atalhos de teclado ---------- */
   document.addEventListener('keydown', function (e) {
