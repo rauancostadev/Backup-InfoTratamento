@@ -158,12 +158,11 @@
         if (!USER_RE.test(usuario)) throw { code: 'auth/invalid-credential' };
         var L = null;
         try { var s = await F.getDoc(D('logins', usuario)); L = s.exists() ? s.data() : null; } catch (e) {}
-        try { return await A.signInWithEmailAndPassword(auth, (L && L.email) || emailInterno(usuario), pw); }
-        catch (e) {
-          var vale = L && L.reset === true && L.expira > Date.now() && pw === SENHA_TEMP;
-          if (RUIM.indexOf(e.code) > -1 && vale) return religar(usuario, L);
-          throw e;
-        }
+        /* redefinição ativa + senha temporária: a credencial antiga já está bloqueada, então vai direto para a nova
+           (mesmo que a senha antiga da pessoa fosse igual à temporária) */
+        var vale = L && L.reset === true && L.expira > Date.now() && pw === SENHA_TEMP;
+        if (vale) return religar(usuario, L);
+        return A.signInWithEmailAndPassword(auth, (L && L.email) || emailInterno(usuario), pw);
       },
       async signUp(usuario, pw, contato) {
         usuario = norm(usuario);
@@ -179,11 +178,14 @@
       },
       /* perfil */
       async getProfile() {
-        var uid = usr().uid, s = null;
-        /* entrou com a senha temporária: o perfil vem do vínculo (ler antes o perfil do uid novo seria negado pelas regras) */
-        var v = await F.getDoc(D('vinculos', uid));
-        if (v.exists()) s = await F.getDoc(D('usuarios', v.data().perfil));
-        else s = await F.getDoc(D('usuarios', uid));
+        var uid = usr().uid, s = null, passo = 'vinculos/' + uid;
+        try {
+          /* entrou com a senha temporária: o perfil vem do vínculo (ler antes o perfil do uid novo seria negado pelas regras) */
+          var v = await F.getDoc(D('vinculos', uid));
+          passo = 'usuarios/' + (v.exists() ? v.data().perfil : uid);
+          if (v.exists()) s = await F.getDoc(D('usuarios', v.data().perfil));
+          else s = await F.getDoc(D('usuarios', uid));
+        } catch (e) { console.error('[diagnóstico] leitura negada em: ' + passo + ' (uid de login: ' + uid + ')'); throw e; }
         if (!s.exists()) { PID = null; return null; }
         PID = s.id;
         return Object.assign({ uid: s.id, authUid: uid }, s.data());
