@@ -460,7 +460,7 @@
     };
     /* clicar no contêiner / área em branco volta para a tela anterior (detalhe da triagem) */
     m.body.onclick = function (ev) {
-      if (ev.target.closest('img, iframe')) return;
+      if (!m.body.contains(ev.target) || ev.target.closest('img, iframe')) return;   /* ignora o clique que abriu o visualizador */
       UI.backModal();
     };
     Promise.resolve(it.obter()).then(function (bl) {
@@ -521,10 +521,6 @@
       return '<article class="tg-card ' + info.cls + '" data-p="' + esc(i.protocolo) + '">' +
         '<header class="tg-card-head"><div class="tg-card-id"><span class="tg-proto-tag">' + esc(i.protocolo) + '</span><h3>' + esc(i.nome) + '</h3></div>' +
           '<span data-badge>' + badge(i.status) + '</span></header>' +
-        '<dl class="tg-card-meta">' +
-          '<div><dt>Médico solicitado</dt><dd class="tg-med">' + medicoHTML(i) + '</dd></div>' +
-          '<div><dt>Solicitada em</dt><dd>' + esc(fmtData(i.criadoEm)) + '</dd></div>' +
-        '</dl>' +
         '<div class="tg-card-acts">' +
           '<label class="tg-status-sel"><span>Alterar status</span>' +
             '<select class="tg-select" data-st="' + esc(i.protocolo) + '" aria-label="Alterar status de ' + esc(i.protocolo) + '">' +
@@ -532,6 +528,10 @@
             '</select></label>' +
           '<button class="tg-btn" type="button" data-det="' + esc(i.protocolo) + '" aria-expanded="false">Ver detalhes</button>' +
         '</div>' +
+        '<dl class="tg-card-meta">' +
+          '<div><dt>Médico solicitado</dt><dd class="tg-med">' + medicoHTML(i) + '</dd></div>' +
+          '<div><dt>Solicitada em</dt><dd>' + esc(fmtData(i.criadoEm)) + '</dd></div>' +
+        '</dl>' +
         '<div class="tg-det hidden"></div>' +
         '<footer class="tg-card-foot" data-foot>' + rodape(i) + '</footer>' +
       '</article>';
