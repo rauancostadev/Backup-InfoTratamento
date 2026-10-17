@@ -24,6 +24,8 @@ service cloud.firestore {
     // Administrador = criador do sistema. Gestor e Administrador têm os mesmos acessos de gestão.
     function admin()          { return ativo() && perfil().papel == 'admin'; }
     function gestao()         { return ativo() && perfil().papel in ['gestor', 'admin']; }
+    // Perfil "Triagem" = operador + acesso à tela de triagem (ver e alterar status; excluir continua só do administrador).
+    function triagemOk()      { return ativo() && perfil().papel in ['triagem', 'gestor', 'admin']; }
     function temGeral()       { return exists(/databases/$(database)/documents/config/geral); }
     function geral()          { return get(/databases/$(database)/documents/config/geral).data; }
     function criador()        { return geral().get('criadorUid', ''); }
@@ -93,7 +95,7 @@ service cloud.firestore {
       allow read: if logado() && (
            pid() == uid
         || admin()
-        || (gestao() && resource.data.papel in ['operador', 'gestor'])
+        || (gestao() && resource.data.papel in ['operador', 'triagem', 'gestor'])
       );
 
       // cria o próprio perfil: administrador (só a primeira conta) ou operador (se o usuário foi autorizado / cadastro aberto)
@@ -126,10 +128,10 @@ service cloud.firestore {
         // gestão: papel/ativo ou senha temporária de OUTRAS pessoas, nunca do criador.
         // O gestor não mexe em administradores e não consegue conceder o perfil de administrador.
         || (gestao() && pid() != uid && uid != criador()
-            && (admin() || resource.data.papel in ['operador', 'gestor'])
+            && (admin() || resource.data.papel in ['operador', 'triagem', 'gestor'])
             && (
                  (mudou().hasOnly(['papel','ativo'])
-                   && (admin() || request.resource.data.papel in ['operador', 'gestor']))
+                   && (admin() || request.resource.data.papel in ['operador', 'triagem', 'gestor']))
               || (mudou().hasOnly(['authAtual','senhaTemp'])
                    && request.resource.data.authAtual == 'PENDENTE'
                    && request.resource.data.senhaTemp == true)
@@ -189,7 +191,7 @@ service cloud.firestore {
     // triagens/{id}/privado/dados: CPF, nascimento, contato e anexos (só a gestão lê).
     match /triagens/{protocolo} {
       allow get: if true;
-      allow list: if gestao();
+      allow list: if triagemOk();
       allow create: if protocolo.matches('^LIGA-[A-HJ-NP-Z2-9]{5}$')
         && request.resource.data.keys().hasOnly(['protocolo', 'nome', 'medico', 'medicoEspecialidade', 'medicoCrm', 'status', 'criadoEm'])
         && request.resource.data.protocolo == protocolo
@@ -201,13 +203,13 @@ service cloud.firestore {
         && (!('medicoCrm' in request.resource.data) || (request.resource.data.medicoCrm is string && request.resource.data.medicoCrm.size() <= 20))
         && existsAfter(/databases/$(database)/documents/triagens/$(protocolo)/privado/dados);
       // a gestão só muda o status (e a data da alteração)
-      allow update: if gestao() && mudou().hasOnly(['status', 'atualizadoEm'])
-        && request.resource.data.status in ['Pendente', 'Autorizado', 'Não Autorizado']
+      allow update: if triagemOk() && mudou().hasOnly(['status', 'atualizadoEm'])
+        && request.resource.data.status in ['Pendente', 'Analisando', 'Autorizado', 'Não Autorizado']
         && request.resource.data.atualizadoEm == request.time;
       allow delete: if admin();
 
       match /privado/{doc} {
-        allow read: if gestao();
+        allow read: if triagemOk();
         allow create: if doc == 'dados'
           && !exists(/databases/$(database)/documents/triagens/$(protocolo))
           && existsAfter(/databases/$(database)/documents/triagens/$(protocolo))
@@ -216,7 +218,7 @@ service cloud.firestore {
           && request.resource.data.nascimento is string && request.resource.data.nascimento.size() <= 10
           && request.resource.data.contato is string && request.resource.data.contato.size() <= 11
           && request.resource.data.anexos is list;   // sem limite de quantidade de anexos
-        allow update: if gestao() && mudou().hasOnly(['atualizadoPor'])
+        allow update: if triagemOk() && mudou().hasOnly(['atualizadoPor'])
           && request.resource.data.atualizadoPor is string && request.resource.data.atualizadoPor.size() <= 60;
         allow delete: if admin();
       }
@@ -225,7 +227,7 @@ service cloud.firestore {
       // Sem limite de quantidade: muitos anexos são gravados em vários lotes. O 1º lote vai junto com a solicitação;
       // os seguintes são aceitos só nos primeiros 30 minutos depois do registro (e nunca sobrescrevem partes existentes).
       match /anexos/{parte} {
-        allow read: if gestao();
+        allow read: if triagemOk();
         allow create: if parte.matches('^[0-9]{1,4}_[0-9]{1,2}$')
           && request.resource.data.keys().hasOnly(['arquivo', 'parte', 'dados'])
           && request.resource.data.arquivo is int && request.resource.data.parte is int

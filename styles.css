@@ -631,6 +631,9 @@ body[data-page="triagem"] .hero h1{letter-spacing:-.01em}
 /* botões */
 .tg-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--tg-blue);background:var(--tg-card);color:var(--tg-blue);font-weight:700;font-size:.85rem;white-space:nowrap;transition:.15s}
 .tg-btn:hover{background:var(--tg-tint)}
+.tg-btn.danger{border-color:#c0392b;color:#c0392b}
+.tg-btn.danger:hover{background:#fdecea}
+.tg-btn.danger[disabled]{opacity:.5;pointer-events:none}
 .tg-btn.primary{background:var(--tg-blue-dk);border-color:var(--tg-blue-dk);color:#fff}
 .tg-btn.primary:hover{filter:brightness(1.12)}
 .tg-mini{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--tg-line);background:var(--tg-card);color:var(--tg-ink);font-weight:700;font-size:.76rem;transition:.15s}
@@ -666,6 +669,8 @@ body[data-page="triagem"] .hero h1{letter-spacing:-.01em}
 .tg-badge small{font-weight:600;opacity:.85;font-size:.75rem}
 .tg-badge small::before{content:"· "}
 .tg-badge.pendente{background:var(--tg-warn-bg);color:var(--tg-warn)}
+.tg-badge.analisando{background:#e3f0fb;color:#0b4a7a}
+html[data-tema="dark"] .tg-badge.analisando{background:#10304d;color:#9fd0f5}
 .tg-badge.autorizado{background:var(--tg-ok-bg);color:var(--tg-ok)}
 .tg-badge.recusado{background:var(--tg-bad-bg);color:var(--tg-bad)}
 
@@ -708,7 +713,7 @@ body[data-page="triagem"] .hero h1{letter-spacing:-.01em}
 .tg-filter:hover{border-color:#aebccb;color:var(--tg-ink)}
 .tg-filter .tg-dot{width:9px;height:9px;border-radius:50%;background:var(--dot);flex:none}
 .tg-filter.todos .tg-dot{display:none}
-.tg-filter.pendente{--dot:var(--tg-warn-st)} .tg-filter.autorizado{--dot:var(--tg-ok-st)} .tg-filter.recusado{--dot:var(--tg-bad-st)}
+.tg-filter.pendente{--dot:var(--tg-warn-st)} .tg-filter.analisando{--dot:#1f6fa8} .tg-filter.autorizado{--dot:var(--tg-ok-st)} .tg-filter.recusado{--dot:var(--tg-bad-st)}
 .tg-filter em{font-style:normal;font-size:.72rem;font-weight:800;min-width:22px;text-align:center;padding:1px 7px;border-radius:999px;background:var(--tg-tint);color:var(--tg-gray)}
 .tg-filter.active{background:var(--tg-blue-dk);border-color:var(--tg-blue-dk);color:#fff}
 .tg-filter.active em{background:rgba(255,255,255,.2);color:#fff}
@@ -717,7 +722,7 @@ body[data-page="triagem"] .hero h1{letter-spacing:-.01em}
 .tg-cards{display:grid;gap:14px}
 
 .tg-card{--st:var(--tg-warn-st);background:var(--tg-card);border:1px solid var(--tg-line);border-left:5px solid var(--st);border-radius:12px;box-shadow:var(--tg-shadow);overflow:hidden}
-.tg-card.autorizado{--st:var(--tg-ok-st)} .tg-card.recusado{--st:var(--tg-bad-st)}
+.tg-card.analisando{--st:#1f6fa8} .tg-card.autorizado{--st:var(--tg-ok-st)} .tg-card.recusado{--st:var(--tg-bad-st)}
 .tg-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px 6px}
 .tg-card-id{min-width:0;flex:1}
 .tg-proto-tag{display:inline-block;font:700 .72rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;background:var(--tg-tint);color:var(--tg-blue);padding:5px 8px;border-radius:6px;margin-bottom:8px}

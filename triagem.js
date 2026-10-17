@@ -45,10 +45,11 @@
   const COLECAO = 'triagens';
 
   /* Status possíveis (o texto é exatamente o que fica salvo no Firestore) */
-  const STATUS = { PENDENTE: 'Pendente', AUTORIZADO: 'Autorizado', NAO_AUTORIZADO: 'Não Autorizado' };
-  const STATUS_LISTA = [STATUS.PENDENTE, STATUS.AUTORIZADO, STATUS.NAO_AUTORIZADO];
+  const STATUS = { PENDENTE: 'Pendente', AUTORIZADO: 'Autorizado', NAO_AUTORIZADO: 'Não Autorizado', ANALISANDO: 'Analisando' };
+  const STATUS_LISTA = [STATUS.PENDENTE, STATUS.ANALISANDO, STATUS.AUTORIZADO, STATUS.NAO_AUTORIZADO];
   const STATUS_INFO = {
     'Pendente':       { cls: 'pendente',   ico: '🟡', desc: 'Aguardando análise' },
+    'Analisando':     { cls: 'analisando', ico: '🔵', desc: 'Em análise pela equipe' },
     'Autorizado':     { cls: 'autorizado', ico: '🟢', desc: 'Solicitação liberada' },
     'Não Autorizado': { cls: 'recusado',   ico: '🔴', desc: 'Solicitação recusada' }
   };
@@ -420,6 +421,20 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
   }
 
+  /* exclui a solicitação inteira: anexos, dados privados e documento público (as regras só permitem ao administrador) */
+  async function excluirTriagem(protocolo) {
+    const c = await fb(), F = c.F;
+    const refs = (await F.getDocs(F.collection(c.db, COLECAO, protocolo, 'anexos'))).docs.map(function (d) { return d.ref; });
+    refs.push(F.doc(c.db, COLECAO, protocolo, 'privado', 'dados'));
+    for (let k = 0; k < refs.length; k += 400) {
+      const b = F.writeBatch(c.db);
+      refs.slice(k, k + 400).forEach(function (r) { b.delete(r); });
+      await b.commit();
+    }
+    await F.deleteDoc(F.doc(c.db, COLECAO, protocolo));
+    for (const k of Array.from(cacheAnexos.keys())) if (k.indexOf(protocolo) === 0) cacheAnexos.delete(k);
+  }
+
   /* altera o status (grava também quem alterou e quando) */
   async function atualizarStatus(protocolo, status, por) {
     if (STATUS_LISTA.indexOf(status) < 0) throw new Error('Status inválido');
@@ -527,6 +542,7 @@
               STATUS_LISTA.map(function (s) { return '<option' + (s === i.status ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') +
             '</select></label>' +
           '<button class="tg-btn" type="button" data-det="' + esc(i.protocolo) + '" aria-expanded="false">Ver detalhes</button>' +
+          (ctx.admin ? '<button class="tg-btn danger" type="button" data-del="' + esc(i.protocolo) + '" title="Excluir esta triagem (somente Administrador)">🗑️ Excluir</button>' : '') +
         '</div>' +
         '<dl class="tg-card-meta">' +
           '<div><dt>Médico solicitado</dt><dd class="tg-med">' + medicoHTML(i) + '</dd></div>' +
@@ -598,6 +614,20 @@
     lista.addEventListener('click', async function (ev) {
       const card = ev.target.closest('.tg-card'); if (!card) return;
       const p = card.dataset.p, it = itens.find(function (x) { return x.protocolo === p; });
+      const bx = ev.target.closest('[data-del]');
+      if (bx) {
+        if (!ctx.admin || !it) return;
+        if (!confirm('Excluir definitivamente a triagem ' + p + ' (' + it.nome + ')?\n\nOs dados do paciente e todos os anexos serão apagados. Esta ação não pode ser desfeita.')) return;
+        bx.disabled = true;
+        try {
+          await excluirTriagem(p);
+          itens.splice(itens.indexOf(it), 1);
+          chips(); desenhar();
+          if (window.UI) UI.toast('Triagem ' + p + ' excluída');
+          if (ctx.onChange) ctx.onChange(it);
+        } catch (e) { bx.disabled = false; aviso('err', erroMsg(e)); }
+        return;
+      }
       const bd = ev.target.closest('[data-det]'), bp = ev.target.closest('[data-prev]'), bl = ev.target.closest('[data-dl]');
       if (bd) return abrirDetalhes(card, bd);
       if (!it || !it.det) return;
@@ -647,7 +677,7 @@
   window.Triagem = {
     STATUS: STATUS, STATUS_LISTA: STATUS_LISTA, STATUS_INFO: STATUS_INFO, ANEXO: ANEXO,
     criar: criar, buscar: buscar, listar: listar, contarPendentes: contarPendentes, detalhes: detalhes,
-    obterAnexo: obterAnexo, abrirAnexo: abrirAnexo, atualizarStatus: atualizarStatus, renderAdmin: renderAdmin,
+    obterAnexo: obterAnexo, abrirAnexo: abrirAnexo, atualizarStatus: atualizarStatus, excluirTriagem: excluirTriagem, renderAdmin: renderAdmin,
     visualizar: visualizar, baixarBlob: baixarBlob,
     normalizarProtocolo: normalizarProtocolo, gerarProtocolo: gerarProtocolo,
     badge: badge, erroMsg: erroMsg, fmtData: fmtData, fmtCPF: fmtCPF, fmtTel: fmtTel, fmtNasc: fmtNasc, fmtNascIdade: fmtNascIdade,

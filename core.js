@@ -1,7 +1,7 @@
 /* =====================================================================
    core.js • Central de Marcação
    Parte compartilhada pelas páginas: conexão com o banco (Firebase), login por
-   USUÁRIO, perfis (administrador / gestor / operador), senha temporária e
+   USUÁRIO, perfis (administrador / gestor / triagem / operador), senha temporária e
    avisos em tempo real (com o título da aba piscando).
 
    Use depois do shell.js:
@@ -29,7 +29,7 @@
   var USER_RE = /^[a-z0-9._-]{3,30}$/;    /* regra do nome de usuário */
   var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   var TITULO_AVISO = '📢 Aviso da gestão!';
-  var PAPEL = { admin: 'Administrador', gestor: 'Gestor', operador: 'Operador' };
+  var PAPEL = { admin: 'Administrador', gestor: 'Gestor', triagem: 'Triagem', operador: 'Operador' };
 
   var Core = window.Core = {
     SENHA_TEMP: SENHA_TEMP, TEMP_HORAS: TEMP_HORAS, USER_RE: USER_RE, EMAIL_RE: EMAIL_RE, PAPEL: PAPEL,
@@ -95,6 +95,8 @@
   Core.nomeUser = function () { return (Core.perfil && Core.perfil.nome) || Core.usuarioDe(Core.perfil) || ''; };
   Core.isAdmin = function () { return !!Core.perfil && Core.perfil.papel === 'admin'; };
   /* gestor e administrador têm os mesmos acessos de gestão */
+  /* acesso à tela de triagem: perfil Triagem (operador + triagem), gestor e administrador */
+  Core.temTriagem = function () { return !!Core.perfil && (Core.perfil.papel === 'admin' || Core.perfil.papel === 'gestor' || Core.perfil.papel === 'triagem'); };
   Core.isGestao = function () { return !!Core.perfil && (Core.perfil.papel === 'admin' || Core.perfil.papel === 'gestor'); };
 
   /* =====================================================================
@@ -239,7 +241,7 @@
       },
       /* gestão (gestor / administrador): o gestor nunca recebe os administradores */
       async listUsers(papel) {
-        var ref = papel === 'admin' ? C('usuarios') : F.query(C('usuarios'), F.where('papel', 'in', ['operador', 'gestor']));
+        var ref = papel === 'admin' ? C('usuarios') : F.query(C('usuarios'), F.where('papel', 'in', ['operador', 'triagem', 'gestor']));
         return (await F.getDocs(ref)).docs.map(function (d) { return Object.assign({ uid: d.id }, d.data()); });
       },
       setUserAdmin: function (uid, patch) { return F.updateDoc(D('usuarios', uid), patch); },

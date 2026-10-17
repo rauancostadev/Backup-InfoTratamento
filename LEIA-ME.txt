@@ -70,7 +70,7 @@ TRIAGEM (triagem.html + triagem.js)
   Anexos têm pré-visualização (miniatura/janela) e download. Gera o protocolo LIGA-XXXXX e mostra o comprovante.
 - Consultar Protocolo: busca direta pelo número. Link direto: triagem.html?protocolo=LIGA-XXXXX
 - Painel de Controle > Triagem (Gestor/Administrador): cartões com busca, filtros, detalhes (CPF, idade, contato com
-  WhatsApp/ligar, anexos com miniatura, visualização e download) e altera o status (Pendente / Autorizado / Não Autorizado). O cartão mostra o nº de pendentes.
+  WhatsApp/ligar, anexos com miniatura, visualização e download) e altera o status (Pendente / Analisando / Autorizado / Não Autorizado). O cartão mostra o nº de pendentes.
 - Firestore: triagens/{protocolo} (público p/ consulta) e triagens/{protocolo}/privado/dados (só gestão).
 PARA ATIVAR
 1. Publique o firestore.rules de novo (obrigatório: libera anexos ilimitados e os campos especialidade/CRM).

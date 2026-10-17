@@ -126,10 +126,10 @@ const CARDS = [
   { k: 'backup',    ico: '💾', t: 'Backup',    d: 'Salvar e importar anotações',       c: '#00838f' },
   { k: 'usuarios',  ico: '👥', t: 'Usuários',  d: 'Contas e senha temporária',         c: '#6a1b9a', gestao: true },
   { k: 'avisos',    ico: '📢', t: 'Avisos',    d: 'Avisar quem está logado', c: '#c2185b', gestao: true },
-  { k: 'triagem',   ico: '🩺', t: 'Triagem',   d: 'Solicitações e status',   c: '#00897b', gestao: true }
+  { k: 'triagem',   ico: '🩺', t: 'Triagem',   d: 'Solicitações e status',   c: '#00897b', triagem: true }
 ];
 const FN = { perfil: tabPerfil, mensagens: tabMensagens, senha: tabSenha, backup: tabBackup, usuarios: tabUsuarios, avisos: tabAvisos, triagem: tabTriagem };
-const cardsVisiveis = () => CARDS.filter(c => !c.gestao || Core.isGestao());
+const cardsVisiveis = () => CARDS.filter(c => c.triagem ? Core.temTriagem() : (!c.gestao || Core.isGestao()));
 
 function montarPainel(){
   q('#entrada').classList.add('hidden'); q('#entrada').innerHTML = '';
@@ -139,7 +139,8 @@ function montarPainel(){
     `<button type="button" class="pn-card" data-k="${c.k}" style="--c:${c.c}"><span class="pn-ico">${c.ico}</span><h2>${c.t}</h2><p>${esc(c.d)}</p></button>`).join('');
   qa('.pn-card', q('#pnGrid')).forEach(b => b.onclick = () => abrir(b.dataset.k));
   q('#pnSair').onclick = async () => { UI.closeModal(); await Core.flushPerfil(); await B().signOut(); };
-  if (Core.isGestao()){ contarPedidos(); contarTriagem(); }
+  if (Core.isGestao()) contarPedidos();
+  if (Core.temTriagem()) contarTriagem();
 }
 function desmontarPainel(){ q('#painel').classList.add('hidden'); UI.closeModal(); }
 
@@ -358,7 +359,7 @@ async function tabUsuarios(box){
         <small>${esc(u.nome || 'sem nome')}${u.email ? ' · ' + esc(u.email) : ''}</small>
         ${pedido ? '<small style="color:var(--vermelho);font-weight:700">⚠ Pediu nova senha ("esqueci minha senha")</small>' : ''}
         ${u.senhaTemp ? '<small style="color:var(--laranja);font-weight:700">Senha temporária ativa: aguardando a troca pela pessoa</small>' : ''}</div>
-        <div class="au-acts"><select class="select" data-papel="${esc(u.uid)}" ${podeEditar ? '' : 'disabled'}>${opt('operador', u.papel)}${opt('gestor', u.papel)}${Core.isAdmin() ? opt('admin', u.papel) : ''}</select>
+        <div class="au-acts"><select class="select" data-papel="${esc(u.uid)}" ${podeEditar ? '' : 'disabled'}>${opt('operador', u.papel)}${opt('triagem', u.papel)}${opt('gestor', u.papel)}${Core.isAdmin() ? opt('admin', u.papel) : ''}</select>
         <label class="au-check"><input type="checkbox" data-ativo="${esc(u.uid)}" ${u.ativo ? 'checked' : ''} ${podeEditar ? '' : 'disabled'}> Ativo</label>
         <button class="btn" data-temp="${esc(u.uid)}" type="button" title="${esc(motivo)}" ${podeSenha ? '' : 'disabled'}>🔑 Senha temporária</button>
         ${pedido ? `<button class="btn ghost" data-dispensa="${esc(u.uid)}" type="button">Dispensar pedido</button>` : ''}</div></div>`;
@@ -435,7 +436,7 @@ async function contarTriagem(){
 }
 /* A tela (busca, filtros, cartões, detalhes e anexos) fica em triagem.js > Triagem.renderAdmin */
 function tabTriagem(box){
-  Triagem.renderAdmin(box, { usuario: Core.usuarioDe(Core.perfil), onChange: contarTriagem });
+  Triagem.renderAdmin(box, { usuario: Core.usuarioDe(Core.perfil), admin: Core.isAdmin(), onChange: contarTriagem });
 }
 
 /* =============== início =============== */
