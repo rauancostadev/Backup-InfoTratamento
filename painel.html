@@ -424,7 +424,7 @@ async function tabAvisos(box){
   };
 }
 
-/* =============== Triagem — gestão (lista as solicitações e altera o status) =============== */
+/* =============== Triagem — gestão =============== */
 async function contarTriagem(){
   try {
     const n = await Triagem.contarPendentes();
@@ -433,74 +433,9 @@ async function contarTriagem(){
     if (n) c.insertAdjacentHTML('beforeend', `<span class="pn-badge" title="${n} solicitação(ões) pendente(s)">${n}</span>`);
   } catch (e) { /* sem permissão ou sem conexão: o cartão segue sem contador */ }
 }
-async function tabTriagem(box){
-  box.innerHTML = '<div class="au-empty">Carregando solicitações…</div>';
-  let itens;
-  try { itens = await Triagem.listar(); }
-  catch (e) { box.innerHTML = '<div class="au-msg err show">' + esc(Triagem.erroMsg(e)) + '</div>'; return; }
-
-  let filtro = 'todos', busca = '';
-  const ST = Triagem.STATUS_LISTA;
-  const cont = f => f === 'todos' ? itens.length : itens.filter(i => i.status === f).length;
-
-  box.innerHTML = `<div class="au-msg" id="tMsg" role="alert"></div>
-    <input class="au-plain" id="tBusca" type="search" placeholder="Buscar por protocolo, paciente ou médico…" autocomplete="off" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px">
-    <div class="chips" id="tChips" style="margin-bottom:14px"></div>
-    <div id="tLista" class="au-list"></div>`;
-  const msg = q('#tMsg', box);
-
-  function chips(){
-    q('#tChips', box).innerHTML = ['todos', ...ST].map(f =>
-      `<button type="button" class="chip ${f === filtro ? 'active' : ''}" data-f="${esc(f)}">${f === 'todos' ? 'Todos' : esc(f)} <em>${cont(f)}</em></button>`).join('');
-    qa('.chip', box).forEach(b => b.onclick = () => { filtro = b.dataset.f; chips(); lista(); });
-  }
-
-  function lista(){
-    const f = norm(busca);
-    const vis = itens.filter(i => (filtro === 'todos' || i.status === filtro) && (!f || norm(i.protocolo + ' ' + i.nome + ' ' + i.medico).includes(f)));
-    q('#tLista', box).innerHTML = vis.length ? vis.map(i => `
-      <div class="au-item tg-item" data-p="${esc(i.protocolo)}">
-        <div class="au-main"><b>${esc(i.protocolo)} · ${esc(i.nome)}</b>
-          <small>${i.medico ? 'Médico: ' + esc(i.medico) + ' · ' : ''}${esc(Triagem.fmtData(i.criadoEm))}</small></div>
-        <div class="au-acts">${Triagem.badge(i.status)}
-          <select class="select" data-st="${esc(i.protocolo)}" aria-label="Alterar status de ${esc(i.protocolo)}">${ST.map(s => `<option ${s === i.status ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
-          <button class="btn ghost" type="button" data-det="${esc(i.protocolo)}">Detalhes</button></div>
-        <div class="tg-det hidden"></div>
-      </div>`).join('') : '<div class="au-empty">Nenhuma solicitação encontrada.</div>';
-
-    /* altera o status direto no Firestore */
-    qa('[data-st]', box).forEach(sel => sel.onchange = async () => {
-      const it = itens.find(x => x.protocolo === sel.dataset.st), novo = sel.value, antigo = it.status;
-      sel.disabled = true;
-      try {
-        await Triagem.atualizarStatus(it.protocolo, novo, Core.usuarioDe(Core.perfil));
-        it.status = novo; UI.toast('Status atualizado: ' + novo);
-        chips(); lista(); contarTriagem();
-      } catch (e) { sel.value = antigo; sel.disabled = false; showMsg(msg, 'err', Triagem.erroMsg(e)); }
-    });
-    /* mostra CPF, nascimento, contato e anexos (dados sensíveis só carregam aqui) */
-    qa('[data-det]', box).forEach(b => b.onclick = async () => {
-      const row = b.closest('.tg-item'), d = q('.tg-det', row);
-      if (!d.classList.contains('hidden')){ d.classList.add('hidden'); return; }
-      d.classList.remove('hidden'); d.textContent = 'Carregando…';
-      try {
-        const x = await Triagem.detalhes(b.dataset.det);
-        if (!x){ d.textContent = 'Sem dados adicionais.'; return; }
-        const anexos = x.anexos || [];
-        d.innerHTML = `<div><b>CPF</b><br>${esc(x.cpf ? Triagem.fmtCPF(x.cpf) : '—')}</div>
-          <div><b>Nascimento</b><br>${esc(Triagem.fmtNasc(x.nascimento))}</div>
-          <div><b>Contato</b><br>${esc(x.contato ? Triagem.fmtTel(x.contato) : '—')}</div>
-          <div><b>Anexos (${anexos.length})</b><br>${anexos.map((a, n) => `<button type="button" class="btn ghost" data-anexo="${n}" style="margin:3px 6px 3px 0">📄 ${esc(a.nome)} (${esc(Triagem.fmtTamanho(a.tamanho || 0))})</button>`).join('') || '—'}</div>
-          ${x.atualizadoPor ? `<div><b>Última alteração por</b><br>${esc(x.atualizadoPor)}</div>` : ''}`;
-        qa('[data-anexo]', d).forEach(ab => ab.onclick = async () => {
-          try { await Triagem.abrirAnexo(b.dataset.det, Number(ab.dataset.anexo), anexos[Number(ab.dataset.anexo)]); }
-          catch (e) { showMsg(msg, 'err', Triagem.erroMsg(e)); }
-        });
-      } catch (e) { d.textContent = Triagem.erroMsg(e); }
-    });
-  }
-  chips(); lista();
-  q('#tBusca', box).oninput = UI.debounce(ev => { busca = ev.target.value; lista(); }, 80);
+/* A tela (busca, filtros, cartões, detalhes e anexos) fica em triagem.js > Triagem.renderAdmin */
+function tabTriagem(box){
+  Triagem.renderAdmin(box, { usuario: Core.usuarioDe(Core.perfil), onChange: contarTriagem });
 }
 
 /* =============== início =============== */

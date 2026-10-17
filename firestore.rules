@@ -191,12 +191,14 @@ service cloud.firestore {
       allow get: if true;
       allow list: if gestao();
       allow create: if protocolo.matches('^LIGA-[A-HJ-NP-Z2-9]{5}$')
-        && request.resource.data.keys().hasOnly(['protocolo', 'nome', 'medico', 'status', 'criadoEm'])
+        && request.resource.data.keys().hasOnly(['protocolo', 'nome', 'medico', 'medicoEspecialidade', 'medicoCrm', 'status', 'criadoEm'])
         && request.resource.data.protocolo == protocolo
         && request.resource.data.status == 'Pendente'
         && request.resource.data.criadoEm == request.time
         && request.resource.data.nome is string && request.resource.data.nome.size() >= 3 && request.resource.data.nome.size() <= 120
         && request.resource.data.medico is string && request.resource.data.medico.size() <= 120
+        && (!('medicoEspecialidade' in request.resource.data) || (request.resource.data.medicoEspecialidade is string && request.resource.data.medicoEspecialidade.size() <= 80))
+        && (!('medicoCrm' in request.resource.data) || (request.resource.data.medicoCrm is string && request.resource.data.medicoCrm.size() <= 20))
         && existsAfter(/databases/$(database)/documents/triagens/$(protocolo)/privado/dados);
       // a gestão só muda o status (e a data da alteração)
       allow update: if gestao() && mudou().hasOnly(['status', 'atualizadoEm'])
@@ -213,21 +215,28 @@ service cloud.firestore {
           && request.resource.data.cpf is string && request.resource.data.cpf.size() <= 11
           && request.resource.data.nascimento is string && request.resource.data.nascimento.size() <= 10
           && request.resource.data.contato is string && request.resource.data.contato.size() <= 11
-          && request.resource.data.anexos is list && request.resource.data.anexos.size() <= 5;
+          && request.resource.data.anexos is list;   // sem limite de quantidade de anexos
         allow update: if gestao() && mudou().hasOnly(['atualizadoPor'])
           && request.resource.data.atualizadoPor is string && request.resource.data.atualizadoPor.size() <= 60;
         allow delete: if admin();
       }
 
-      // conteúdo dos anexos (base64 em partes): qualquer pessoa cria junto com a solicitação; só a gestão lê
+      // conteúdo dos anexos (base64 em partes): qualquer pessoa cria junto com a solicitação; só a gestão lê.
+      // Sem limite de quantidade: muitos anexos são gravados em vários lotes. O 1º lote vai junto com a solicitação;
+      // os seguintes são aceitos só nos primeiros 30 minutos depois do registro (e nunca sobrescrevem partes existentes).
       match /anexos/{parte} {
         allow read: if gestao();
-        allow create: if !exists(/databases/$(database)/documents/triagens/$(protocolo))
-          && existsAfter(/databases/$(database)/documents/triagens/$(protocolo))
-          && parte.matches('^[0-4]_[0-9]{1,2}$')
+        allow create: if parte.matches('^[0-9]{1,4}_[0-9]{1,2}$')
           && request.resource.data.keys().hasOnly(['arquivo', 'parte', 'dados'])
           && request.resource.data.arquivo is int && request.resource.data.parte is int
-          && request.resource.data.dados is string && request.resource.data.dados.size() <= 700000;
+          && request.resource.data.dados is string && request.resource.data.dados.size() <= 700000
+          && (
+            (!exists(/databases/$(database)/documents/triagens/$(protocolo))
+              && existsAfter(/databases/$(database)/documents/triagens/$(protocolo)))
+            ||
+            (exists(/databases/$(database)/documents/triagens/$(protocolo))
+              && get(/databases/$(database)/documents/triagens/$(protocolo)).data.criadoEm > request.time - duration.value(30, 'm'))
+          );
         allow delete: if admin();
       }
     }

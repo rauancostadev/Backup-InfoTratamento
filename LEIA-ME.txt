@@ -64,13 +64,15 @@ EDITAR CONTEÚDO
 - Ultrassom: RAW em ultrassonografia.html.
 
 TRIAGEM (triagem.html + triagem.js)
-- Nova Solicitação: nome, CPF (máscara + dígitos verificadores), nascimento, contato, médico sugerido e anexos
-  (.pdf .jpg .jpeg .png, máx. 5; PDF até 3 MB; fotos são reduzidas no navegador; total até 6 MB). Gera o protocolo LIGA-XXXXX e mostra o comprovante com "Copiar Protocolo".
+- Nova Solicitação: nome, CPF (máscara + dígitos verificadores), nascimento (mostra a idade), contato, médico solicitante
+  (+ especialidade e CRM, opcionais) e anexos (.pdf .jpg .jpeg .png, SEM limite de quantidade; PDF até 3 MB cada;
+  fotos são reduzidas no navegador). Imagens podem ser coladas com Ctrl+V / Cmd+V ou pelo botão "Colar imagem".
+  Anexos têm pré-visualização (miniatura/janela) e download. Gera o protocolo LIGA-XXXXX e mostra o comprovante.
 - Consultar Protocolo: busca direta pelo número. Link direto: triagem.html?protocolo=LIGA-XXXXX
-- Painel de Controle > Triagem (Gestor/Administrador): lista, busca, filtra, abre os detalhes (CPF, contato, anexos)
-  e altera o status (Pendente / Autorizado / Não Autorizado). O cartão mostra o nº de pendentes.
+- Painel de Controle > Triagem (Gestor/Administrador): cartões com busca, filtros, detalhes (CPF, idade, contato com
+  WhatsApp/ligar, anexos com miniatura, visualização e download) e altera o status (Pendente / Autorizado / Não Autorizado). O cartão mostra o nº de pendentes.
 - Firestore: triagens/{protocolo} (público p/ consulta) e triagens/{protocolo}/privado/dados (só gestão).
 PARA ATIVAR
-1. Publique o firestore.rules de novo.
+1. Publique o firestore.rules de novo (obrigatório: libera anexos ilimitados e os campos especialidade/CRM).
 2. (Não usa Firebase Storage: os anexos ficam no Firestore, plano gratuito.)
-3. Copie triagem.html, triagem.js, painel.html, shell.js, index.html e styles.css para o repositório.
+3. Copie triagem.html, triagem.js, painel.html, firestore.rules (publicar), shell.js, index.html e styles.css para o repositório.
