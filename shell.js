@@ -163,12 +163,21 @@
     modalBody = modalBox.querySelector('.modal-body');
     modalFoot = modalBox.querySelector('.modal-foot');
     modalBox.querySelector('.modal-x').addEventListener('click', UI.closeModal);
-    modalEl.addEventListener('click', function (e) { if (e.target === modalEl) UI.closeModal(); });
+    modalEl.addEventListener('click', function (e) { if (e.target === modalEl) { if (modalStack.length) UI.backModal(); else UI.closeModal(); } });
   }
+
+  /* pilha de telas do modal: permite abrir uma tela por cima (visualizador) e voltar para a anterior */
+  var modalStack = [];
+  function moveNodes(from) { var f = document.createDocumentFragment(); while (from.firstChild) f.appendChild(from.firstChild); return f; }
 
   /* opções: { title, sub, html, foot, size:'wide', bare:true }  (title/sub são escapados; html/foot não) */
   UI.openModal = function (o) {
     ensureModal();
+    if (o.stack && modalEl.classList.contains('show')) {
+      modalStack.push({ cls: modalBox.className, head: moveNodes(modalHead), headDisp: modalHead.style.display,
+        body: moveNodes(modalBody), scroll: modalBody.scrollTop, foot: moveNodes(modalFoot), footDisp: modalFoot.style.display, focus: lastFocus });
+      modalHead.innerHTML = ''; modalBody.innerHTML = ''; modalFoot.innerHTML = ''; modalFoot.onclick = null;
+    } else if (!modalEl.classList.contains('show')) modalStack = [];
     modalBox.className = 'modal-box' + (o.size === 'wide' ? ' wide' : '') + (o.bare ? ' bare' : '');
     modalHead.innerHTML = o.title ? '<h2>' + UI.esc(o.title) + '</h2>' + (o.sub ? '<small>' + UI.esc(o.sub) + '</small>' : '') : '';
     modalHead.style.display = o.title ? '' : 'none';
@@ -181,8 +190,19 @@
     modalBox.querySelector('.modal-x').focus();
     return { body: modalBody, foot: modalFoot };
   };
+  /* volta para a tela anterior do modal (se houver); retorna true se voltou */
+  UI.backModal = function () {
+    var p = modalStack.pop(); if (!p) return false;
+    modalBox.className = p.cls;
+    modalHead.innerHTML = ''; modalHead.appendChild(p.head); modalHead.style.display = p.headDisp;
+    modalBody.innerHTML = ''; modalBody.appendChild(p.body); modalBody.scrollTop = p.scroll;
+    modalBody.onclick = null; modalFoot.innerHTML = ''; modalFoot.onclick = null; modalFoot.appendChild(p.foot); modalFoot.style.display = p.footDisp;
+    lastFocus = p.focus;
+    return true;
+  };
   UI.closeModal = function () {
     if (!modalEl || !modalEl.classList.contains('show')) return;
+    modalStack = [];
     modalEl.classList.remove('show');
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   };

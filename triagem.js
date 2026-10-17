@@ -341,9 +341,8 @@
       status: STATUS.PENDENTE,                           /* status inicial */
       criadoEm: F.serverTimestamp()                      /* data/hora do servidor */
     };
-    const esp = (dados.medicoEspecialidade || '').trim(), crm = (dados.medicoCrm || '').trim();
+    const esp = (dados.medicoEspecialidade || '').trim();
     if (esp) pub.medicoEspecialidade = esp;              /* só grava quando preenchido */
-    if (crm) pub.medicoCrm = crm;
 
     const b = F.writeBatch(c.db);
     b.set(F.doc(c.db, COLECAO, protocolo), pub);
@@ -447,6 +446,7 @@
     const it = itens[pos], pdf = it.tipo === 'application/pdf' || extDe(it.nome) === 'pdf', n = itens.length;
     if (urlPrevia) { URL.revokeObjectURL(urlPrevia); urlPrevia = null; }
     const m = UI.openModal({
+      stack: true,
       title: it.nome, sub: (n > 1 ? (pos + 1) + ' de ' + n + ' · ' : '') + fmtTamanho(it.tamanho || 0), size: 'wide',
       html: '<div class="tg-prev" aria-live="polite"><span class="tg-prev-load">Carregando…</span></div>',
       foot: (n > 1 ? '<button type="button" class="tg-btn" data-nav="-1">‹ Anterior</button><button type="button" class="tg-btn" data-nav="1">Próximo ›</button>' : '') +
@@ -455,8 +455,13 @@
     let blob = null;
     m.foot.onclick = function (ev) {
       const b = ev.target.closest('button'); if (!b) return;
-      if (b.dataset.nav) visualizar(itens, (pos + Number(b.dataset.nav) + n) % n);
+      if (b.dataset.nav) { UI.backModal(); visualizar(itens, (pos + Number(b.dataset.nav) + n) % n); }
       else if (b.hasAttribute('data-baixar') && blob) baixarBlob(blob, it.nome);
+    };
+    /* clicar no contêiner / área em branco volta para a tela anterior (detalhe da triagem) */
+    m.body.onclick = function (ev) {
+      if (ev.target.closest('img, iframe')) return;
+      UI.backModal();
     };
     Promise.resolve(it.obter()).then(function (bl) {
       blob = bl; urlPrevia = URL.createObjectURL(bl);
@@ -517,7 +522,7 @@
         '<header class="tg-card-head"><div class="tg-card-id"><span class="tg-proto-tag">' + esc(i.protocolo) + '</span><h3>' + esc(i.nome) + '</h3></div>' +
           '<span data-badge>' + badge(i.status) + '</span></header>' +
         '<dl class="tg-card-meta">' +
-          '<div><dt>Médico solicitante</dt><dd class="tg-med">' + medicoHTML(i) + '</dd></div>' +
+          '<div><dt>Médico solicitado</dt><dd class="tg-med">' + medicoHTML(i) + '</dd></div>' +
           '<div><dt>Solicitada em</dt><dd>' + esc(fmtData(i.criadoEm)) + '</dd></div>' +
         '</dl>' +
         '<div class="tg-card-acts">' +
@@ -661,7 +666,7 @@
   const msgForm = $('triMsg');
   const campos = {
     nome: $('fNome'), cpf: $('fCpf'), nascimento: $('fNasc'), contato: $('fTel'),
-    medico: $('fMedico'), especialidade: $('fEsp'), crm: $('fCrm')
+    medico: $('fMedico'), especialidade: $('fEsp')
   };
   let arquivos = [];                         /* arquivos escolhidos (File) */
   let enviando = false;
@@ -684,15 +689,13 @@
     nascimento: function (v) { return v && !validarNascimento(v) ? 'Data de nascimento inválida.' : ''; },
     contato: function (v) { return v && !validarTel(v) ? 'Telefone inválido. Use DDD + número, ex.: (85) 99999-9999.' : ''; },
     medico: function (v) { return v.length > 120 ? 'Use no máximo 120 caracteres.' : ''; },
-    especialidade: function (v) { return v.length > 80 ? 'Use no máximo 80 caracteres.' : ''; },
-    crm: function (v) { return v.length > 20 ? 'Use no máximo 20 caracteres.' : ''; }
+    especialidade: function (v) { return v.length > 80 ? 'Use no máximo 80 caracteres.' : ''; }
   };
   function validarCampo(n) { const t = VALIDA[n](campos[n].value); erroCampo(n, t); return !t; }
 
   /* máscaras ao digitar + validação ao sair do campo */
   campos.cpf.addEventListener('input', function () { campos.cpf.value = maskCPF(campos.cpf.value); });
   campos.contato.addEventListener('input', function () { campos.contato.value = maskTel(campos.contato.value); });
-  campos.crm.addEventListener('input', function () { campos.crm.value = campos.crm.value.toUpperCase(); });
   Object.keys(campos).forEach(function (n) {
     campos[n].addEventListener('blur', function () { validarCampo(n); });
     campos[n].addEventListener('input', function () { if (campos[n].classList.contains('invalido')) validarCampo(n); });
@@ -849,7 +852,7 @@
     try {
       const r = await criar({
         nome: campos.nome.value, cpf: campos.cpf.value, nascimento: campos.nascimento.value, contato: campos.contato.value,
-        medico: campos.medico.value, medicoEspecialidade: campos.especialidade.value, medicoCrm: campos.crm.value
+        medico: campos.medico.value, medicoEspecialidade: campos.especialidade.value
       }, arquivos, avisar);
       form.reset(); arquivos.forEach(liberarPrevia); arquivos = []; renderArquivos(); esconder(msgArq);
       if (idadeEl) idadeEl.textContent = '';
@@ -891,7 +894,7 @@
         '<header class="tg-res-head"><div><small>Protocolo</small><b>' + esc(r.protocolo) + '</b></div>' + badge(r.status, true) + '</header>' +
         '<dl class="tg-res-dl">' +
           '<div><dt>Paciente</dt><dd>' + esc(r.nome) + '</dd></div>' +
-          '<div><dt>Médico solicitante</dt><dd>' + medicoHTML(r) + '</dd></div>' +
+          '<div><dt>Médico solicitado</dt><dd>' + medicoHTML(r) + '</dd></div>' +
           '<div><dt>Data da solicitação</dt><dd>' + esc(fmtData(r.criadoEm)) + '</dd></div>' +
           (r.atualizadoEm ? '<div><dt>Última atualização</dt><dd>' + esc(fmtData(r.atualizadoEm)) + '</dd></div>' : '') +
         '</dl>' +
